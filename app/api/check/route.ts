@@ -57,9 +57,11 @@ export async function POST(request: NextRequest) {
       throw new Error('Unexpected response type');
     }
 
-    const result = JSON.parse(content.text);
+    const cleaned = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const result = JSON.parse(cleaned);
     return Response.json(result);
-  } catch {
+  } catch (error) {
+    console.error(error);
     return Response.json(
       { error: '判定に失敗しました。もう一度お試しください。' },
       { status: 500 }
