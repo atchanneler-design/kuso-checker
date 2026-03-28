@@ -19,9 +19,10 @@ type ApiResult = AxisScores & {
 
 type Props = {
   result: ApiResult;
+  id?: string;
 };
 
-export default function ResultPanel({ result }: Props) {
+export default function ResultPanel({ result, id }: Props) {
   const total = calcTotal(result);
   const displayScores = calcDisplayScores(result);
   const verdict = getVerdict(total);
@@ -150,6 +151,30 @@ export default function ResultPanel({ result }: Props) {
         <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-5">
           <p className="text-xs font-bold text-yellow-700 mb-1">値段・購入に関する注意</p>
           <p className="text-sm text-yellow-900">{result.price_warning}</p>
+        </div>
+      )}
+
+      {/* X Share */}
+      {id && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={() => {
+              const base = typeof window !== 'undefined' ? window.location.origin : '';
+              const url = `${base}/result/${id}`;
+              const text = `${verdict.verdict}（${total}点）\n${verdict.roast}\n\n#クソ記事チェッカー`;
+              window.open(
+                `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+                '_blank',
+                'noopener,noreferrer'
+              );
+            }}
+            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold px-6 py-3 rounded-full transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.858L1.255 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            Xでシェアする
+          </button>
         </div>
       )}
 

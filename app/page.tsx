@@ -25,12 +25,14 @@ type ApiResult = {
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApiResult | null>(null);
+  const [resultId, setResultId] = useState<string | undefined>(undefined);
   const [error, setError] = useState('');
 
   async function handleSubmit(text: string) {
     setLoading(true);
     setError('');
     setResult(null);
+    setResultId(undefined);
 
     try {
       const res = await fetch('/api/check', {
@@ -46,6 +48,7 @@ export default function Home() {
       }
 
       setResult(data);
+      setResultId(data.id);
       setTimeout(() => {
         document.getElementById('result')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
@@ -84,7 +87,7 @@ export default function Home() {
       {/* Result */}
       {result && (
         <div id="result" className="max-w-2xl mx-auto px-4 pb-12">
-          <ResultPanel result={result} />
+          <ResultPanel result={result} id={resultId} />
         </div>
       )}
 

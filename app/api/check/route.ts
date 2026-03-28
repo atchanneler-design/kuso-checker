@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { nanoid } from 'nanoid';
 import { SYSTEM_PROMPT, selectModel } from '@/lib/prompt';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { getRedis, RESULT_TTL } from '@/lib/redis';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -62,7 +64,19 @@ export async function POST(request: NextRequest) {
     rawText = content.text;
     const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     const result = JSON.parse(cleaned);
-    return Response.json(result);
+
+    // Persist to Redis and return id
+    const id = nanoid(8);
+    const redis = getRedis();
+    if (redis) {
+      try {
+        await redis.set(`result:${id}`, JSON.stringify(result), { ex: RESULT_TTL });
+      } catch (e) {
+        console.error('[check] Redis save error:', e);
+      }
+    }
+
+    return Response.json({ ...result, id: redis ? id : undefined });
   } catch (error) {
     console.error('[check] Error:', error);
     console.error('[check] Raw Claude response:', rawText);
