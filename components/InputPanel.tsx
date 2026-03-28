@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 type Props = {
   onSubmit: (text: string) => void;
@@ -13,6 +13,21 @@ export default function InputPanel({ onSubmit, loading }: Props) {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
   const [fetching, setFetching] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (loading && !fetching) {
+      setElapsed(0);
+      timerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setElapsed(0);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [loading, fetching]);
 
   async function handleSubmit() {
     setError('');
@@ -22,8 +37,8 @@ export default function InputPanel({ onSubmit, loading }: Props) {
         setError('テキストを入力してください。');
         return;
       }
-      if (text.length > 10000) {
-        setError('10,000文字以内で入力してください。');
+      if (text.length > 20000) {
+        setError('20,000文字以内で入力してください。');
         return;
       }
       onSubmit(text);
@@ -55,7 +70,7 @@ export default function InputPanel({ onSubmit, loading }: Props) {
 
   const isLoading = loading || fetching;
   const charCount = text.length;
-  const overLimit = charCount > 10000;
+  const overLimit = charCount > 20000;
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -94,7 +109,7 @@ export default function InputPanel({ onSubmit, loading }: Props) {
             disabled={isLoading}
           />
           <div className={`text-right text-xs mt-1 ${overLimit ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-            {charCount.toLocaleString()} / 10,000文字
+            {charCount.toLocaleString()} / 20,000文字
           </div>
         </div>
       ) : (
@@ -127,11 +142,13 @@ export default function InputPanel({ onSubmit, loading }: Props) {
       >
         {isLoading ? (
           <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+            <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
-            {fetching ? 'ページを取得中...' : '判定中...'}
+            {fetching
+              ? 'ページを取得中...'
+              : `Claudeが判定中... ${elapsed}秒`}
           </span>
         ) : (
           'クソ度を判定する'

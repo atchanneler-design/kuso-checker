@@ -7,18 +7,20 @@ type Props = {
 };
 
 function getColor(score: number): string {
-  if (score >= 80) return '#E24B4A';
-  if (score >= 60) return '#E24B4A';
-  if (score >= 40) return '#EF9F27';
-  if (score >= 20) return '#5DCAA5';
+  if (score === 100) return '#791F1F';
+  if (score >= 80)   return '#A32D2D';
+  if (score >= 60)   return '#E24B4A';
+  if (score >= 40)   return '#EF9F27';
+  if (score >= 20)   return '#5DCAA5';
   return '#1D9E75';
 }
 
 function getLabel(score: number): string {
-  if (score >= 80) return '極めて危険';
-  if (score >= 60) return '危険';
-  if (score >= 40) return 'やや怪しい';
-  if (score >= 20) return '概ね安全';
+  if (score === 100) return '殿堂入り';
+  if (score >= 80)   return '極めて危険';
+  if (score >= 60)   return '危険';
+  if (score >= 40)   return 'やや怪しい';
+  if (score >= 20)   return '概ね安全';
   return '安全';
 }
 

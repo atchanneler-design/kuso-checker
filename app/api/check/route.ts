@@ -44,24 +44,28 @@ export async function POST(request: NextRequest) {
 
   const model = selectModel(text.length);
 
+  let rawText = '';
   try {
     const message = await anthropic.messages.create({
       model,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: text }],
     });
 
     const content = message.content[0];
     if (content.type !== 'text') {
+      console.error('[check] Unexpected content type:', content.type);
       throw new Error('Unexpected response type');
     }
 
-    const cleaned = content.text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    rawText = content.text;
+    const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     const result = JSON.parse(cleaned);
     return Response.json(result);
   } catch (error) {
-    console.error(error);
+    console.error('[check] Error:', error);
+    console.error('[check] Raw Claude response:', rawText);
     return Response.json(
       { error: '判定に失敗しました。もう一度お試しください。' },
       { status: 500 }

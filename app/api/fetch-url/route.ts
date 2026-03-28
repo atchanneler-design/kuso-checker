@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Truncate to 10000 chars
-    const truncated = text.slice(0, 10000);
+    // Truncate to 20000 chars
+    const truncated = text.slice(0, 20000);
     return Response.json({ text: truncated });
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
