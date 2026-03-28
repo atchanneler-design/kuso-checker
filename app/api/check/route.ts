@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
   if (!allowed) {
     return Response.json(
-      { error: '1日の利用上限（20回）に達しました。明日またご利用ください。' },
+      { error: '1日の利用上限（3回）に達しました。明日またご利用ください。' },
       { status: 429 }
     );
   }

@@ -48,7 +48,7 @@ export default function DisclaimerPage() {
           <section>
             <h2 className="font-bold text-gray-900 mb-2">レートリミット</h2>
             <p>
-              本サービスは1IPアドレスあたり1日20回までご利用いただけます。
+              本サービスは1IPアドレスあたり1日3回までご利用いただけます。
               超過した場合は翌日（JST 0時）以降に再度ご利用ください。
             </p>
           </section>

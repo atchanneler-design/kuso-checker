@@ -1,4 +1,4 @@
-const LIMIT = 20;
+const LIMIT = 3;
 
 // In-memory fallback (per-process, resets on restart)
 const inMemoryStore = new Map<string, { count: number; resetAt: number }>();
