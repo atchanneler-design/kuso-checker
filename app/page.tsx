@@ -63,7 +63,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-3xl font-black mb-2">クソ記事チェッカー</h1>
           <p className="text-red-200 text-sm">
-            AI・情報商材系の記事を8軸でスコアリングして危険度を判定します
+            情報商材・怪しい記事の危険度を判定します。有料記事の無料部分をコピペするだけでOK。
           </p>
         </div>
       </div>
