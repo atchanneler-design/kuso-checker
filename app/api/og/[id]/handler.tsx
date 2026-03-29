@@ -19,17 +19,24 @@ async function loadFont(text: string): Promise<ArrayBuffer | null> {
   }
 }
 
-function radarPt(cx: number, cy: number, r: number, i: number): string {
-  const angle = (Math.PI * 2 * i / 5) - Math.PI / 2;
-  return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
-}
-
-function gridPoly(cx: number, cy: number, r: number): string {
-  return Array.from({ length: 5 }, (_, i) => radarPt(cx, cy, r, i)).join(' ');
-}
-
-function dataPoly(cx: number, cy: number, scores: number[], maxR: number): string {
-  return scores.map((s, i) => radarPt(cx, cy, (s / 100) * maxR, i)).join(' ');
+/** Returns an SVG absolute-path string for a pentagon.
+ *  If `rOrScores` is a number, all 5 vertices share that radius.
+ *  If it is an array of scores (0-100), each vertex radius = score/100 * maxR.
+ */
+function makePath(
+  cx: number,
+  cy: number,
+  rOrScores: number | number[],
+  maxR = 185
+): string {
+  const pts = Array.from({ length: 5 }, (_, i) => {
+    const angle = (Math.PI * 2 * i / 5) - Math.PI / 2;
+    const r = Array.isArray(rOrScores) ? (rOrScores[i] / 100) * maxR : rOrScores;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    return `${x.toFixed(3)},${y.toFixed(3)}`;
+  });
+  return `M ${pts[0]} L ${pts[1]} L ${pts[2]} L ${pts[3]} L ${pts[4]} Z`;
 }
 
 export async function GET(
@@ -227,11 +234,11 @@ export async function GET(
             an absolutely-positioned <div> overlay instead.
           */}
           <div style={{ position: 'relative', display: 'flex', width: '699px', height: '630px' }}>
-            <svg width="699" height="630" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
-              {/* Grid pentagons */}
-              <polygon points={gridPoly(CX, CY, MAX_R)}        fill="none" stroke="#2e2e2e" strokeWidth="1.5" />
-              <polygon points={gridPoly(CX, CY, MAX_R * 0.66)} fill="none" stroke="#222222" strokeWidth="1" />
-              <polygon points={gridPoly(CX, CY, MAX_R * 0.33)} fill="none" stroke="#1a1a1a" strokeWidth="1" />
+            <svg width="699" height="630" viewBox="0 0 699 630" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
+              {/* Grid pentagons – <path> avoids Satori bounding-box mis-placement */}
+              <path d={makePath(CX, CY, MAX_R)}        fill="none" stroke="#2e2e2e" strokeWidth="1.5" />
+              <path d={makePath(CX, CY, MAX_R * 0.66)} fill="none" stroke="#222222" strokeWidth="1" />
+              <path d={makePath(CX, CY, MAX_R * 0.33)} fill="none" stroke="#1a1a1a" strokeWidth="1" />
 
               {/* Axis lines */}
               <line x1={CX} y1={CY} x2={axisLines[0].x} y2={axisLines[0].y} stroke="#252525" strokeWidth="1" />
@@ -240,22 +247,15 @@ export async function GET(
               <line x1={CX} y1={CY} x2={axisLines[3].x} y2={axisLines[3].y} stroke="#252525" strokeWidth="1" />
               <line x1={CX} y1={CY} x2={axisLines[4].x} y2={axisLines[4].y} stroke="#252525" strokeWidth="1" />
 
-              {/* Data fill polygon */}
-              <polygon
-                points={dataPoly(CX, CY, axisScores, MAX_R)}
+              {/* Data fill – <path> with absolute coordinates */}
+              <path
+                d={makePath(CX, CY, axisScores, MAX_R)}
                 fill={verdict.color}
                 fillOpacity="0.30"
                 stroke={verdict.color}
                 strokeWidth="2.5"
                 strokeLinejoin="round"
               />
-
-              {/* Vertex dots */}
-              <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="6" fill={verdict.color} />
-              <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="6" fill={verdict.color} />
-              <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="6" fill={verdict.color} />
-              <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="6" fill={verdict.color} />
-              <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="6" fill={verdict.color} />
             </svg>
 
             {/*
@@ -267,9 +267,26 @@ export async function GET(
               the loaded NotoSansJP rather than a system fallback.
             */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex' }}>
+              {/* Vertex dots – <div> instead of <circle> to avoid Satori positioning bugs */}
+              {dotPoints.map((pt, i) => (
+                <div
+                  key={`dot-${i}`}
+                  style={{
+                    position: 'absolute',
+                    left: pt.x - 6,
+                    top: pt.y - 6,
+                    width: 12,
+                    height: 12,
+                    borderRadius: 6,
+                    background: verdict.color,
+                    display: 'flex',
+                  }}
+                />
+              ))}
+              {/* Label boxes */}
               {labelPoints.map((pt, i) => (
                 <div
-                  key={i}
+                  key={`label-${i}`}
                   style={{
                     position: 'absolute',
                     left: pt.lx - BOX_HALF_W,
