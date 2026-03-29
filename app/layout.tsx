@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import Link from 'next/link';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
@@ -66,8 +67,29 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
-        {children}
+      <body className="min-h-screen bg-[#0a0a0a] text-gray-100 antialiased flex flex-col">
+        <div className="flex-1">
+          {children}
+        </div>
+        
+        <footer className="py-12 border-t border-gray-800 bg-[#0a0a0a]">
+          <div className="max-w-2xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-center md:text-left">
+              <Link href="/" className="text-lg font-black tracking-tighter italic text-white">
+                KUSO-CHECKER
+              </Link>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                © 2026 kuso-checker.vercel.app
+              </p>
+            </div>
+            <nav className="flex flex-wrap justify-center items-center gap-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              <Link href="/" className="hover:text-red-500 transition-colors">Home</Link>
+              <Link href="/about" className="hover:text-red-500 transition-colors">About / Terms</Link>
+              <Link href="https://x.com/" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-colors">X (Twitter)</Link>
+            </nav>
+          </div>
+        </footer>
+
         <Analytics />
       </body>
     </html>
