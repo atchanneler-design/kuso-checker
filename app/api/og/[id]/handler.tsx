@@ -81,7 +81,7 @@ export async function GET(
     const angle = (Math.PI * 2 * i / 5) - Math.PI / 2;
     const lx = CX + LABEL_R * Math.cos(angle);
     const ly = CY + LABEL_R * Math.sin(angle);
-    const anchor = lx < CX - 20 ? 'end' : lx > CX + 20 ? 'start' : 'middle';
+    const anchor = (lx < CX - 20 ? 'end' : lx > CX + 20 ? 'start' : 'middle') as 'end' | 'start' | 'middle';
     return { label, score: axisScores[i], lx, ly, anchor };
   });
 
