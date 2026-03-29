@@ -21,9 +21,10 @@ type ApiResult = AxisScores & {
 type Props = {
   result: ApiResult;
   id?: string;
+  onReward?: () => void;
 };
 
-export default function ResultPanel({ result, id }: Props) {
+export default function ResultPanel({ result, id, onReward }: Props) {
   const total = calcTotal(result);
   const displayScores = calcDisplayScores(result);
   const verdict = getVerdict(total);
@@ -182,6 +183,7 @@ export default function ResultPanel({ result, id }: Props) {
               );
               try {
                 await fetch('/api/reward', { method: 'POST' });
+                onReward?.();
               } catch {
                 // サイレントに無視 — 回復失敗はUXに影響させない
               }

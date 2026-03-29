@@ -110,7 +110,7 @@ export default function Home() {
       {/* Result */}
       {result && (
         <div id="result" className="max-w-2xl mx-auto px-4 pb-12">
-          <ResultPanel result={result} id={resultId} />
+          <ResultPanel result={result} id={resultId} onReward={fetchRemaining} />
           <div className="flex justify-center pt-8">
             <button
               onClick={() => {
