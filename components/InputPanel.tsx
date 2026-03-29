@@ -120,7 +120,7 @@ export default function InputPanel({ onSubmit, loading, remaining }: Props) {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com/article"
-            className="w-full p-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
+            className="w-full p-4 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
             disabled={isLoading}
             onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleSubmit()}
           />
