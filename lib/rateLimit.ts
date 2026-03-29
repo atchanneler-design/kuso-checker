@@ -32,7 +32,16 @@ async function checkInMemory(ip: string): Promise<{ allowed: boolean; remaining:
   return { allowed: true, remaining: LIMIT - entry.count };
 }
 
+function isAdminIP(ip: string): boolean {
+  const raw = process.env.ADMIN_IPS ?? '';
+  if (!raw) return false;
+  return raw.split(',').map(s => s.trim()).includes(ip);
+}
+
 export async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
+  if (isAdminIP(ip)) {
+    return { allowed: true, remaining: LIMIT };
+  }
   // Try Vercel KV if configured
   const kvUrl = process.env.KV_REST_API_URL;
   const kvToken = process.env.KV_REST_API_TOKEN;

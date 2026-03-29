@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return Response.json({ ...result, id: redis ? id : undefined });
+    return Response.json({ ...result, id });
   } catch (error) {
     console.error('[check] Error:', error);
     console.error('[check] Raw Claude response:', rawText);
