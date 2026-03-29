@@ -87,8 +87,8 @@ export async function GET(
 
   const CX = 350;
   const CY = 315;
-  const MAX_R = 185;
-  const LABEL_R = 232;
+  const MAX_R = 190;
+  const LABEL_R = 250;
 
   // Pre-compute label positions for rendering
   const labelPoints = axisLabels.map((label, i) => {
@@ -127,10 +127,10 @@ export async function GET(
             display: 'flex',
             flexDirection: 'column',
             width: '500px',
-            padding: '44px 36px 36px 52px',
+            padding: '44px 30px 36px 52px',
           }}
         >
-          <span style={{ fontSize: 13, color: '#aaa', marginBottom: '18px', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: 16, color: '#b3b3b3', marginBottom: '20px', letterSpacing: '0.1em' }}>
             クソ記事チェッカー
           </span>
 
@@ -140,11 +140,11 @@ export async function GET(
               alignSelf: 'flex-start',
               background: verdict.color,
               color: 'white',
-              fontSize: 18,
-              fontWeight: 700,
-              padding: '6px 20px',
-              borderRadius: '24px',
-              marginBottom: '10px',
+              fontSize: 22,
+              fontWeight: 800,
+              padding: '8px 24px',
+              borderRadius: '30px',
+              marginBottom: '16px',
             }}
           >
             {verdict.label}
@@ -153,9 +153,9 @@ export async function GET(
           <span
             style={{
               fontSize: 180,
-              fontWeight: 700,
+              fontWeight: 800,
               color: verdict.color,
-              lineHeight: '1',
+              lineHeight: '0.9',
               letterSpacing: '-0.05em',
             }}
           >
@@ -164,10 +164,10 @@ export async function GET(
 
           <span
             style={{
-              fontSize: 36,
-              fontWeight: 700,
+              fontSize: 42,
+              fontWeight: 800,
               color: 'white',
-              marginTop: '6px',
+              marginTop: '12px',
               lineHeight: '1.2',
             }}
           >
@@ -176,11 +176,11 @@ export async function GET(
 
           <span
             style={{
-              fontSize: 20,
-              color: '#d4d4d4',
-              marginTop: '14px',
-              lineHeight: '1.65',
-              fontStyle: 'italic',
+              fontSize: 24,
+              color: '#f0f0f0',
+              marginTop: '18px',
+              lineHeight: '1.6',
+              fontWeight: 600,
             }}
           >
             {verdict.roast}
@@ -188,7 +188,7 @@ export async function GET(
 
           <div style={{ flex: 1 }} />
 
-          <span style={{ fontSize: 13, color: '#888' }}>
+          <span style={{ fontSize: 15, color: '#999' }}>
             kuso-checker.vercel.app
           </span>
         </div>
@@ -223,18 +223,18 @@ export async function GET(
               <polygon
                 points={dataPoly(CX, CY, axisScores, MAX_R)}
                 fill={verdict.color}
-                fillOpacity="0.22"
+                fillOpacity="0.35"
                 stroke={verdict.color}
                 strokeWidth="2.5"
                 strokeLinejoin="round"
               />
 
               {/* Vertex dots */}
-              <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="5.5" fill={verdict.color} />
-              <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="5.5" fill={verdict.color} />
-              <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="5.5" fill={verdict.color} />
-              <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="5.5" fill={verdict.color} />
-              <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="5.5" fill={verdict.color} />
+              <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="6.5" fill={verdict.color} />
+              <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="6.5" fill={verdict.color} />
+              <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="6.5" fill={verdict.color} />
+              <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="6.5" fill={verdict.color} />
+              <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="6.5" fill={verdict.color} />
             </svg>
 
             {/* Labels overlay (Satori does not support <text> inside <svg>) */}
@@ -244,16 +244,16 @@ export async function GET(
                   key={i}
                   style={{
                     position: 'absolute',
-                    left: pt.anchor === 'start' ? pt.lx + 6 : pt.anchor === 'end' ? pt.lx - 126 : pt.lx - 60,
-                    top: pt.ly - 26,
-                    width: '120px',
+                    left: pt.lx - 80, // perfectly center 160px box horizontally
+                    top: pt.ly - 28,  // perfectly center ~56px box vertically
+                    width: '160px',
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: pt.anchor === 'start' ? 'flex-start' : pt.anchor === 'end' ? 'flex-end' : 'center',
+                    alignItems: 'center', // Always center-align text and scores!
                   }}
                 >
-                  <div style={{ display: 'flex', color: '#ccc', fontSize: 13, marginBottom: 2 }}>{pt.label}</div>
-                  <div style={{ display: 'flex', color: verdict.color, fontSize: 24, fontWeight: 700 }}>{pt.score}</div>
+                  <div style={{ display: 'flex', color: '#eaeaea', fontSize: 15, marginBottom: 2 }}>{pt.label}</div>
+                  <div style={{ display: 'flex', color: verdict.color, fontSize: 26, fontWeight: 700 }}>{pt.score}</div>
                 </div>
               ))}
             </div>
