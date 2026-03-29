@@ -63,11 +63,11 @@ export async function GET(
   const displayScores = calcDisplayScores(scores);
   const verdict = getVerdict(total);
 
-  // Radar chart
+  // Radar chart axes
   const axisLabels = ['有害度', '煽り誇大', '情報の薄さ', '囲い込み', '実績の怪しさ'] as const;
   const axisScores = axisLabels.map(k => displayScores[k]);
 
-  // Extract all characters that will be rendered so Google Fonts can subset the font
+  // Load only the characters we actually render so the font subset is minimal
   const allText = [
     'クソ記事チェッカー',
     verdict.label,
@@ -76,7 +76,7 @@ export async function GET(
     verdict.roast,
     'kuso-checker.vercel.app',
     ...axisLabels,
-    ...axisScores.map(String)
+    ...axisScores.map(String),
   ].join('');
 
   const fontData = await loadFont(allText);
@@ -85,18 +85,25 @@ export async function GET(
     : [];
   const fontFamily = fontData ? 'NotoSansJP, sans-serif' : 'sans-serif';
 
+  // ---- Radar chart geometry ----
+  // SVG canvas: 700 × 630.  Center: (350, 315).
   const CX = 350;
   const CY = 315;
-  const MAX_R = 190;
-  const LABEL_R = 250;
+  const MAX_R = 185;   // pentagon radius
+  const LABEL_R = 252; // label anchor radius (just outside MAX_R + safe gap)
 
-  // Pre-compute label positions for rendering
+  // Label box: 148px wide × ~62px tall (14px text + gap + 28px score + 12px v-pad)
+  // Center box horizontally at lx, vertically at ly.
+  const BOX_W = 148;
+  const BOX_H = 62; // estimated: 6+14+4+28+6 (padding + label + gap + score + padding) + 4 line-height slack
+  const BOX_HALF_W = BOX_W / 2;
+  const BOX_HALF_H = BOX_H / 2;
+
   const labelPoints = axisLabels.map((label, i) => {
     const angle = (Math.PI * 2 * i / 5) - Math.PI / 2;
     const lx = CX + LABEL_R * Math.cos(angle);
     const ly = CY + LABEL_R * Math.sin(angle);
-    const anchor = (lx < CX - 20 ? 'end' : lx > CX + 20 ? 'start' : 'middle') as 'end' | 'start' | 'middle';
-    return { label, score: axisScores[i], lx, ly, anchor };
+    return { label, score: axisScores[i], lx, ly };
   });
 
   const dotPoints = axisScores.map((s, i) => {
@@ -121,82 +128,91 @@ export async function GET(
           fontFamily,
         }}
       >
-        {/* Left area – 500px */}
+        {/* ── Left panel ─────────────────────────────────────────── */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             width: '500px',
-            padding: '44px 30px 36px 52px',
+            padding: '44px 32px 36px 52px',
           }}
         >
-          <span style={{ fontSize: 16, color: '#b3b3b3', marginBottom: '20px', letterSpacing: '0.1em' }}>
+          {/* Site name – all text needs fontWeight:700 so Satori uses the loaded font */}
+          <span style={{ display: 'flex', fontSize: 15, fontWeight: 700, color: '#d4d4d4', marginBottom: '18px', letterSpacing: '0.12em' }}>
             クソ記事チェッカー
           </span>
 
+          {/* Danger badge */}
           <div
             style={{
               display: 'flex',
               alignSelf: 'flex-start',
               background: verdict.color,
-              color: 'white',
+              color: '#ffffff',
               fontSize: 22,
-              fontWeight: 800,
+              fontWeight: 700,
               padding: '8px 24px',
               borderRadius: '30px',
-              marginBottom: '16px',
+              marginBottom: '14px',
             }}
           >
             {verdict.label}
           </div>
 
+          {/* Score */}
           <span
             style={{
+              display: 'flex',
               fontSize: 180,
-              fontWeight: 800,
+              fontWeight: 700,
               color: verdict.color,
-              lineHeight: '0.9',
+              lineHeight: '0.88',
               letterSpacing: '-0.05em',
             }}
           >
             {total}
           </span>
 
+          {/* Verdict */}
           <span
             style={{
-              fontSize: 42,
-              fontWeight: 800,
-              color: 'white',
-              marginTop: '12px',
+              display: 'flex',
+              fontSize: 40,
+              fontWeight: 700,
+              color: '#ffffff',
+              marginTop: '14px',
               lineHeight: '1.2',
             }}
           >
             {verdict.verdict}
           </span>
 
+          {/* Roast – keep at 21px so long strings don't overflow vertically */}
           <span
             style={{
-              fontSize: 24,
-              color: '#f0f0f0',
-              marginTop: '18px',
-              lineHeight: '1.6',
-              fontWeight: 600,
+              display: 'flex',
+              fontSize: 21,
+              fontWeight: 700,
+              color: '#e8e8e8',
+              marginTop: '16px',
+              lineHeight: '1.65',
             }}
           >
             {verdict.roast}
           </span>
 
-          <div style={{ flex: 1 }} />
+          <div style={{ display: 'flex', flex: 1 }} />
 
-          <span style={{ fontSize: 15, color: '#999' }}>
+          {/* Footer URL */}
+          <span style={{ display: 'flex', fontSize: 14, fontWeight: 700, color: '#888888' }}>
             kuso-checker.vercel.app
           </span>
         </div>
 
-        {/* Divider */}
-        <div style={{ width: '1px', background: '#1c1c1c', margin: '44px 0' }} />
+        {/* Thin vertical divider */}
+        <div style={{ display: 'flex', width: '1px', background: '#1c1c1c', margin: '44px 0' }} />
 
-        {/* Right area – radar chart */}
+        {/* ── Right panel – radar chart ───────────────────────────── */}
         <div
           style={{
             display: 'flex',
@@ -205,55 +221,76 @@ export async function GET(
             justifyContent: 'center',
           }}
         >
-          <div style={{ position: 'relative', display: 'flex', width: '700px', height: '630px' }}>
-            <svg width="700" height="630" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
+          {/*
+            The SVG is 700×630, matching the available right-area width.
+            Satori crashes when <text> is inside <svg>, so labels live in
+            an absolutely-positioned <div> overlay instead.
+          */}
+          <div style={{ position: 'relative', display: 'flex', width: '699px', height: '630px' }}>
+            <svg width="699" height="630" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
               {/* Grid pentagons */}
-              <polygon points={gridPoly(CX, CY, MAX_R)} fill="none" stroke="#222" strokeWidth="1.5" />
-              <polygon points={gridPoly(CX, CY, MAX_R * 0.66)} fill="none" stroke="#1e1e1e" strokeWidth="1" />
+              <polygon points={gridPoly(CX, CY, MAX_R)}        fill="none" stroke="#2e2e2e" strokeWidth="1.5" />
+              <polygon points={gridPoly(CX, CY, MAX_R * 0.66)} fill="none" stroke="#222222" strokeWidth="1" />
               <polygon points={gridPoly(CX, CY, MAX_R * 0.33)} fill="none" stroke="#1a1a1a" strokeWidth="1" />
 
               {/* Axis lines */}
-              <line x1={CX} y1={CY} x2={axisLines[0].x} y2={axisLines[0].y} stroke="#222" strokeWidth="1" />
-              <line x1={CX} y1={CY} x2={axisLines[1].x} y2={axisLines[1].y} stroke="#222" strokeWidth="1" />
-              <line x1={CX} y1={CY} x2={axisLines[2].x} y2={axisLines[2].y} stroke="#222" strokeWidth="1" />
-              <line x1={CX} y1={CY} x2={axisLines[3].x} y2={axisLines[3].y} stroke="#222" strokeWidth="1" />
-              <line x1={CX} y1={CY} x2={axisLines[4].x} y2={axisLines[4].y} stroke="#222" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[0].x} y2={axisLines[0].y} stroke="#252525" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[1].x} y2={axisLines[1].y} stroke="#252525" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[2].x} y2={axisLines[2].y} stroke="#252525" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[3].x} y2={axisLines[3].y} stroke="#252525" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[4].x} y2={axisLines[4].y} stroke="#252525" strokeWidth="1" />
 
-              {/* Data fill */}
+              {/* Data fill polygon */}
               <polygon
                 points={dataPoly(CX, CY, axisScores, MAX_R)}
                 fill={verdict.color}
-                fillOpacity="0.35"
+                fillOpacity="0.30"
                 stroke={verdict.color}
                 strokeWidth="2.5"
                 strokeLinejoin="round"
               />
 
               {/* Vertex dots */}
-              <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="6.5" fill={verdict.color} />
-              <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="6.5" fill={verdict.color} />
-              <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="6.5" fill={verdict.color} />
-              <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="6.5" fill={verdict.color} />
-              <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="6.5" fill={verdict.color} />
+              <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="6" fill={verdict.color} />
+              <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="6" fill={verdict.color} />
+              <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="6" fill={verdict.color} />
+              <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="6" fill={verdict.color} />
+              <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="6" fill={verdict.color} />
             </svg>
 
-            {/* Labels overlay (Satori does not support <text> inside <svg>) */}
+            {/*
+              Label overlay.
+              Each label box is BOX_W × BOX_H, centered at (lx, ly).
+              A solid dark background prevents the pentagon lines from
+              visually bleeding into the text.
+              All text elements carry fontWeight:700 so Satori picks
+              the loaded NotoSansJP rather than a system fallback.
+            */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex' }}>
               {labelPoints.map((pt, i) => (
                 <div
                   key={i}
                   style={{
                     position: 'absolute',
-                    left: pt.lx - 80, // perfectly center 160px box horizontally
-                    top: pt.ly - 28,  // perfectly center ~56px box vertically
-                    width: '160px',
+                    left: pt.lx - BOX_HALF_W,
+                    top: pt.ly - BOX_HALF_H,
+                    width: `${BOX_W}px`,
+                    height: `${BOX_H}px`,
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center', // Always center-align text and scores!
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#111111',
+                    borderRadius: '8px',
+                    padding: '0 6px',
                   }}
                 >
-                  <div style={{ display: 'flex', color: '#eaeaea', fontSize: 15, marginBottom: 2 }}>{pt.label}</div>
-                  <div style={{ display: 'flex', color: verdict.color, fontSize: 26, fontWeight: 700 }}>{pt.score}</div>
+                  <div style={{ display: 'flex', color: '#cccccc', fontSize: 14, fontWeight: 700, lineHeight: '1', marginBottom: '5px' }}>
+                    {pt.label}
+                  </div>
+                  <div style={{ display: 'flex', color: verdict.color, fontSize: 28, fontWeight: 700, lineHeight: '1' }}>
+                    {pt.score}
+                  </div>
                 </div>
               ))}
             </div>

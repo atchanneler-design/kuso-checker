@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server';
-import * as cheerio from 'cheerio';
 
 const PRIVATE_IP_PATTERNS = [
   /^localhost$/i,
@@ -46,13 +45,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     let response: Response;
     try {
-      response = await fetch(url, {
+      response = await fetch(`https://r.jina.ai/${url}`, {
         signal: controller.signal,
         headers: {
+          'Accept': 'text/plain',
           'User-Agent': 'Mozilla/5.0 (compatible; KusoChecker/1.0)',
         },
       });
@@ -67,17 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const html = await response.text();
-    const $ = cheerio.load(html);
-
-    // Remove script, style, nav, header, footer elements
-    $('script, style, nav, header, footer, aside, noscript, iframe').remove();
-
-    // Extract title and body text
-    const title = $('title').text().trim();
-    const body = $('body').text().replace(/\s+/g, ' ').trim();
-
-    const text = title ? `${title}\n\n${body}` : body;
+    const text = await response.text();
 
     if (!text || text.length < 50) {
       return Response.json(
@@ -86,9 +76,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Truncate to 20000 chars
-    const truncated = text.slice(0, 20000);
-    return Response.json({ text: truncated });
+    return Response.json({ text: text.slice(0, 20000) });
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       return Response.json(

@@ -167,9 +167,9 @@ export default function ResultPanel({ result, id }: Props) {
 
       {/* X Share */}
       {id && (
-        <div className="flex justify-center pt-2">
+        <div className="flex flex-col items-center gap-2 pt-2">
           <button
-            onClick={() => {
+            onClick={async () => {
               const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://kuso-checker.vercel.app';
               const url = `${base}/result/${id}`;
               const text = `${verdict.verdict}（${total}点）\n${verdict.roast}\n\n#クソ記事チェッカー`;
@@ -178,6 +178,11 @@ export default function ResultPanel({ result, id }: Props) {
                 '_blank',
                 'noopener,noreferrer'
               );
+              try {
+                await fetch('/api/reward', { method: 'POST' });
+              } catch {
+                // サイレントに無視 — 回復失敗はUXに影響させない
+              }
             }}
             className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold px-6 py-3 rounded-full transition-colors"
           >
@@ -186,6 +191,9 @@ export default function ResultPanel({ result, id }: Props) {
             </svg>
             Xでシェアする
           </button>
+          <p className="text-xs text-gray-400">
+            シェアすると判定回数が1回分回復します 🎁
+          </p>
         </div>
       )}
 

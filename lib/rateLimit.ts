@@ -64,6 +64,33 @@ export async function peekRateLimit(ip: string): Promise<{ remaining: number }> 
   return { remaining: Math.max(0, LIMIT - entry.count) };
 }
 
+export async function rewardRateLimit(ip: string): Promise<void> {
+  if (isAdminIP(ip)) return;
+
+  const kvUrl = process.env.KV_REST_API_URL;
+  const kvToken = process.env.KV_REST_API_TOKEN;
+
+  if (kvUrl && kvToken) {
+    try {
+      const { kv } = await import('@vercel/kv');
+      const key = `ratelimit:${ip}`;
+      const count = (await kv.get<number>(key)) ?? 0;
+      if (count > 0) {
+        await kv.decr(key);
+      }
+      return;
+    } catch {
+      // fall through to in-memory
+    }
+  }
+
+  // In-memory fallback
+  const entry = inMemoryStore.get(ip);
+  if (entry && Date.now() < entry.resetAt && entry.count > 0) {
+    entry.count -= 1;
+  }
+}
+
 export async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
   if (isAdminIP(ip)) {
     return { allowed: true, remaining: LIMIT };

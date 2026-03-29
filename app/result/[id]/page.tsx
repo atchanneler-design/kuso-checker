@@ -24,6 +24,12 @@ export async function generateMetadata(
   const total = calcTotal(result);
   const verdict = getVerdict(total);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://kuso-checker.vercel.app';
+  // Bump NEXT_PUBLIC_OG_VERSION in Vercel env vars whenever the OGP design changes.
+  // X (Twitter) caches OGP images aggressively; changing the query string forces a re-fetch.
+  // To manually bust the cache for a specific URL, use the Twitter Card Validator:
+  //   https://cards-dev.twitter.com/validator
+  const ogVersion = process.env.NEXT_PUBLIC_OG_VERSION ?? '3';
+  const ogUrl = `${baseUrl}/api/og/${id}?v=${ogVersion}`;
 
   return {
     title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
@@ -31,13 +37,13 @@ export async function generateMetadata(
     openGraph: {
       title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
       description: result.comment,
-      images: [{ url: `${baseUrl}/api/og/${id}?v=2`, width: 1200, height: 630 }],
+      images: [{ url: ogUrl, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
       description: result.comment,
-      images: [`${baseUrl}/api/og/${id}?v=2`],
+      images: [ogUrl],
     },
   };
 }
