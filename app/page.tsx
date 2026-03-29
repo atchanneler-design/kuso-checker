@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import InputPanel from '@/components/InputPanel';
 import ResultPanel from '@/components/ResultPanel';
 
@@ -27,6 +27,21 @@ export default function Home() {
   const [result, setResult] = useState<ApiResult | null>(null);
   const [resultId, setResultId] = useState<string | undefined>(undefined);
   const [error, setError] = useState('');
+  const [remaining, setRemaining] = useState<number | null>(null);
+
+  const fetchRemaining = useCallback(async () => {
+    try {
+      const res = await fetch('/api/remaining');
+      const data = await res.json() as { remaining: number };
+      setRemaining(data.remaining);
+    } catch {
+      // ignore — UI degrades gracefully without the count
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRemaining();
+  }, [fetchRemaining]);
 
   async function handleSubmit(text: string) {
     setLoading(true);
@@ -56,6 +71,7 @@ export default function Home() {
       setError('判定に失敗しました。もう一度お試しください。');
     } finally {
       setLoading(false);
+      fetchRemaining();
     }
   }
 
@@ -68,13 +84,16 @@ export default function Home() {
           <p className="text-red-200 text-sm">
             情報商材・怪しい記事の危険度を判定します。有料記事の無料部分をコピペするだけでOK。
           </p>
+          <p className="text-red-300/70 text-xs mt-2">
+            1日3回まで無料で利用できます（JST 0時リセット）
+          </p>
         </div>
       </div>
 
       {/* Input */}
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <InputPanel onSubmit={handleSubmit} loading={loading} />
+          <InputPanel onSubmit={handleSubmit} loading={loading} remaining={remaining} />
         </div>
 
         {error && (

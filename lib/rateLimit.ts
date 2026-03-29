@@ -38,6 +38,32 @@ function isAdminIP(ip: string): boolean {
   return raw.split(',').map(s => s.trim()).includes(ip);
 }
 
+export async function peekRateLimit(ip: string): Promise<{ remaining: number }> {
+  if (isAdminIP(ip)) {
+    return { remaining: LIMIT };
+  }
+
+  const kvUrl = process.env.KV_REST_API_URL;
+  const kvToken = process.env.KV_REST_API_TOKEN;
+
+  if (kvUrl && kvToken) {
+    try {
+      const { kv } = await import('@vercel/kv');
+      const count = (await kv.get<number>(`ratelimit:${ip}`)) ?? 0;
+      return { remaining: Math.max(0, LIMIT - count) };
+    } catch {
+      // fall through
+    }
+  }
+
+  // In-memory fallback
+  const entry = inMemoryStore.get(ip);
+  if (!entry || Date.now() >= entry.resetAt) {
+    return { remaining: LIMIT };
+  }
+  return { remaining: Math.max(0, LIMIT - entry.count) };
+}
+
 export async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remaining: number }> {
   if (isAdminIP(ip)) {
     return { allowed: true, remaining: LIMIT };

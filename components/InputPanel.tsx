@@ -5,9 +5,10 @@ import { useState, useEffect, useRef } from 'react';
 type Props = {
   onSubmit: (text: string) => void;
   loading: boolean;
+  remaining?: number | null;
 };
 
-export default function InputPanel({ onSubmit, loading }: Props) {
+export default function InputPanel({ onSubmit, loading, remaining }: Props) {
   const [tab, setTab] = useState<'text' | 'url'>('text');
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
@@ -132,6 +133,21 @@ export default function InputPanel({ onSubmit, loading }: Props) {
       {/* Error */}
       {error && (
         <p className="mt-2 text-sm text-red-500">{error}</p>
+      )}
+
+      {/* Remaining count */}
+      {remaining !== null && remaining !== undefined && (
+        <p className={`mt-4 text-xs font-medium text-center ${
+          remaining === 0
+            ? 'text-red-500'
+            : remaining === 1
+            ? 'text-yellow-500'
+            : 'text-green-600'
+        }`}>
+          {remaining === 0
+            ? '本日の上限に達しました'
+            : `本日の残り判定回数：${remaining} / 3回`}
+        </p>
       )}
 
       {/* Submit button */}
