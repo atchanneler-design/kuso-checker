@@ -86,9 +86,11 @@ export default function Home() {
             怪しい情報商材や高額な有料記事の危険度をAIが判定します。<br />
             購入する前に無料公開部分をコピペして、中身の薄さや詐欺リスクを確かめましょう。
           </p>
-          <p className="text-red-300/70 text-xs mt-2">
-            1日3回まで無料で利用できます（JST 0時リセット）
-          </p>
+          <div className="mt-5 flex justify-center">
+            <span className="inline-block bg-black/20 text-white/90 text-xs font-medium px-4 py-1.5 rounded-full ring-1 ring-white/20">
+              1日3回まで無料で利用できます（JST 0時リセット）
+            </span>
+          </div>
         </div>
       </div>
 
