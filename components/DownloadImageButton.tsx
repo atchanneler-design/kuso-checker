@@ -14,8 +14,6 @@ type ApiResult = {
   how_to_use: string | null;
 };
 
-type Format = 'story' | 'square';
-
 type Props = {
   total: number;
   displayScores: DisplayScores;
@@ -424,29 +422,24 @@ function renderAll(
   return y;
 }
 
-// ---- Generate final canvas ----
+// ---- Generate final canvas (1080×1920 fixed width, auto height) ----
 
 function generateCanvas(
-  format: Format,
   total: number,
   displayScores: DisplayScores,
   verdict: Verdict,
   result: ApiResult,
 ): HTMLCanvasElement {
-  const W = format === 'story' ? 1080 : 1200;
-  const MIN_H = format === 'story' ? 1920 : 1200;
-  const PAD = format === 'story' ? 60 : 80;
+  const W = 1080;
+  const MIN_H = 1920;
+  const PAD = 60;
   const IW = W - PAD * 2;
 
-  // Pass 1: measure height using a minimal canvas
+  // Pass 1: measure height
   const measureCanvas = document.createElement('canvas');
   measureCanvas.width = W;
   measureCanvas.height = 100;
-  const contentH = renderAll(
-    measureCanvas.getContext('2d')!,
-    W, PAD, IW,
-    total, displayScores, verdict, result,
-  );
+  const contentH = renderAll(measureCanvas.getContext('2d')!, W, PAD, IW, total, displayScores, verdict, result);
 
   const H = Math.max(MIN_H, contentH);
 
@@ -463,25 +456,22 @@ function generateCanvas(
 
 export default function DownloadImageButton({ total, displayScores, verdict, result }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
-  const [format, setFormat] = useState<Format>('story');
   const [generating, setGenerating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const generate = useCallback(() => {
     setGenerating(true);
     setPreviewUrl(null);
-    // Defer to allow React to render the spinner first
     setTimeout(() => {
       try {
-        const canvas = generateCanvas(format, total, displayScores, verdict, result);
+        const canvas = generateCanvas(total, displayScores, verdict, result);
         setPreviewUrl(canvas.toDataURL('image/png'));
       } finally {
         setGenerating(false);
       }
     }, 20);
-  }, [format, total, displayScores, verdict, result]);
+  }, [total, displayScores, verdict, result]);
 
-  // Generate when modal opens or format changes
   useEffect(() => {
     if (!modalOpen) {
       setPreviewUrl(null);
@@ -494,7 +484,7 @@ export default function DownloadImageButton({ total, displayScores, verdict, res
     if (!previewUrl) return;
     const a = document.createElement('a');
     a.href = previewUrl;
-    a.download = `kuso-checker-${format === 'story' ? '1080x1920' : '1200x1200'}.png`;
+    a.download = 'kuso-checker-1080x1920.png';
     a.click();
   };
 
@@ -525,7 +515,7 @@ export default function DownloadImageButton({ total, displayScores, verdict, res
             onClick={e => e.stopPropagation()}
           >
             {/* Modal header */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
               <span className="text-white font-bold text-sm">結果画像</span>
               <button
                 onClick={() => setModalOpen(false)}
@@ -536,25 +526,6 @@ export default function DownloadImageButton({ total, displayScores, verdict, res
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
-            </div>
-
-            {/* Format tabs */}
-            <div className="px-5 pb-4 flex-shrink-0">
-              <div className="flex rounded-full bg-[#222] p-1 text-xs">
-                {(['story', 'square'] as Format[]).map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFormat(f)}
-                    className={`flex-1 py-1.5 rounded-full font-medium transition-colors ${
-                      format === f
-                        ? 'bg-white text-gray-900'
-                        : 'text-gray-500 hover:text-gray-300'
-                    }`}
-                  >
-                    {f === 'story' ? 'ストーリー 1080×1920' : '正方形 1200×1200'}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* Preview (scrollable) */}
@@ -574,8 +545,11 @@ export default function DownloadImageButton({ total, displayScores, verdict, res
               </div>
             </div>
 
-            {/* Download button */}
-            <div className="px-5 pt-3 pb-5 border-t border-[#1e1e1e] flex-shrink-0">
+            {/* Tip + Download button */}
+            <div className="px-5 pt-3 pb-5 border-t border-[#1e1e1e] flex-shrink-0 space-y-3">
+              <p className="text-xs text-gray-500 text-center leading-relaxed">
+                💡 スマホの場合は画像を長押しして「写真に保存」または「コピー」できます
+              </p>
               <button
                 onClick={handleDownload}
                 disabled={!previewUrl || generating}
