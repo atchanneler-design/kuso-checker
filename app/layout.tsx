@@ -85,7 +85,7 @@ export default function RootLayout({
             <nav className="flex flex-wrap justify-center items-center gap-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
               <Link href="/" className="hover:text-red-500 transition-colors">Home</Link>
               <Link href="/about" className="hover:text-red-500 transition-colors">About / Terms</Link>
-              <Link href="https://x.com/" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-colors">X (Twitter)</Link>
+              <Link href="https://x.com/ai_article_jp" target="_blank" rel="noopener noreferrer" className="hover:text-red-500 transition-colors">X (Twitter)</Link>
             </nav>
           </div>
         </footer>

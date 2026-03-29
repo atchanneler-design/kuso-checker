@@ -77,10 +77,13 @@ export default function AboutPage() {
               当サービスが提供する「クソ度」および分析結果は、最新のAI（Claude等）による特定アルゴリズムに基づいた**統計的・主観的な分析**であり、特定の商材の真贋、詐欺性、または価値の有無を法的に断定するものではありません。
             </p>
             <p>
-              判定結果を鵜呑みにせず、最終的な購入や行動の判断は必ずご自身の責任において行ってください。当サービスを利用したことにより生じたいかなる損失・損害についても、運営者は一切の責任を負いかねます。
+              判定結果のみを根拠とした重要な意思決定（購入、契約、法的措置等）は行わないでください。最終的な判断は必ずご自身の責任において行ってください。当サービスを利用したことにより生じたいかなる損失・損害についても、運営者は一切の責任を負いかねます。
             </p>
             <p>
-               また、判定結果として生成された文章や画像の著作権は、各AIサービスのアグリーメントおよび当サービスに帰属しますが、SNSでのシェアや個人的な保存は自由に行っていただいて構いません。
+               また、他者の著作物を入力する際は著作権等の権利に十分ご注意ください。個人情報を含むテキストの入力はお控えください。
+            </p>
+            <p>
+               本サービスで生成された文章や画像の著作権は、各AIサービスのアグリーメントおよび当サービスに帰属しますが、SNSでのシェアや個人的な保存は自由に行っていただいて構いません。
             </p>
           </div>
         </section>
@@ -114,7 +117,7 @@ export default function AboutPage() {
               </p>
               <div className="mt-4 flex flex-wrap gap-4">
                 <Link 
-                  href="https://x.com/" 
+                  href="https://x.com/ai_article_jp" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
@@ -122,7 +125,7 @@ export default function AboutPage() {
                   <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.858L1.255 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
-                  公式X（DMまで）
+                  公式X (@ai_article_jp)
                 </Link>
                 {/* 
                 <a href="mailto:your-email@gmail.com" className="inline-flex items-center gap-2 bg-gray-800 text-white font-bold px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors border border-gray-700">
