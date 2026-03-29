@@ -6,6 +6,7 @@ import { getVerdict } from '@/lib/verdicts';
 import ScoreMeter from './ScoreMeter';
 import RadarChart from './RadarChart';
 import EvidenceList from './EvidenceList';
+import DownloadImageButton from './DownloadImageButton';
 
 type ApiResult = AxisScores & {
   comment: string;
@@ -153,6 +154,16 @@ export default function ResultPanel({ result, id }: Props) {
           <p className="text-sm text-yellow-900">{result.price_warning}</p>
         </div>
       )}
+
+      {/* Download image */}
+      <div className="pt-2">
+        <DownloadImageButton
+          total={total}
+          displayScores={displayScores}
+          verdict={verdict}
+          result={result}
+        />
+      </div>
 
       {/* X Share */}
       {id && (
