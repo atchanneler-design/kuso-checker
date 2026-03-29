@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
 const geist = Geist({ subsets: ['latin'] });
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="ja" className={geist.className}>
       <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
         {children}
+        <Analytics />
       </body>
     </html>
   );
