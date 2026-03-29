@@ -185,19 +185,6 @@ export default function Home() {
           </button>
         </section>
       </div>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-6 px-4 text-center text-xs text-gray-400">
-        <p>
-          判定結果はAIによる自動分析であり、運営者の意見ではありません。
-          参考情報としてご活用ください。
-        </p>
-        <p className="mt-1">
-          <a href="/disclaimer" className="underline hover:text-gray-600">
-            免責事項
-          </a>
-        </p>
-      </footer>
     </main>
   );
 }

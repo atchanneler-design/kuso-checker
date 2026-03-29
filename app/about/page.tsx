@@ -108,7 +108,7 @@ export default function AboutPage() {
           <div className="space-y-6 text-sm leading-relaxed">
             <div>
               <p className="font-bold text-white mb-2 underline whitespace-pre">運 営 者 ：</p>
-              <p>クソ記事チェッカー開発チーム（個人開発）</p>
+              <p>ai_article_jp (@ai_article_jp)</p>
             </div>
             <div>
               <p className="font-bold text-white mb-2 underline whitespace-pre">お問合せ ：</p>
