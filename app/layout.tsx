@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     '見分け方',
     'AI診断',
   ],
+  verification: {
+    google: '5TrKOd_XS6oswBZhhS0lncZu0zcOgZBEfvTyG-NNWhw',
+  },
   openGraph: {
     title: '情報商材クソ記事チェッカー',
     description: '怪しい情報商材や有料noteの危険度をAIが判定する特化型チェッカー',
