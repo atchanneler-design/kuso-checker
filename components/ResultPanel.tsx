@@ -159,7 +159,7 @@ export default function ResultPanel({ result, id }: Props) {
         <div className="flex justify-center pt-2">
           <button
             onClick={() => {
-              const base = typeof window !== 'undefined' ? window.location.origin : '';
+              const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://kuso-checker.vercel.app';
               const url = `${base}/result/${id}`;
               const text = `${verdict.verdict}（${total}点）\n${verdict.roast}\n\n#クソ記事チェッカー`;
               window.open(
