@@ -99,10 +99,10 @@ export async function GET(
   const MAX_R = 185;   // pentagon radius
   const LABEL_R = 252; // label anchor radius (just outside MAX_R + safe gap)
 
-  // Label box: 148px wide × ~62px tall (14px text + gap + 28px score + 12px v-pad)
+  // Label box: 154px wide × ~72px tall
   // Center box horizontally at lx, vertically at ly.
-  const BOX_W = 148;
-  const BOX_H = 62; // estimated: 6+14+4+28+6 (padding + label + gap + score + padding) + 4 line-height slack
+  const BOX_W = 160;
+  const BOX_H = 80; 
   const BOX_HALF_W = BOX_W / 2;
   const BOX_HALF_H = BOX_H / 2;
 
@@ -302,10 +302,10 @@ export async function GET(
                     padding: '0 6px',
                   }}
                 >
-                  <div style={{ display: 'flex', color: '#cccccc', fontSize: 14, fontWeight: 700, lineHeight: '1', marginBottom: '5px' }}>
+                  <div style={{ display: 'flex', color: '#ffffff', fontSize: 16, fontWeight: 700, lineHeight: '1', marginBottom: '6px' }}>
                     {pt.label}
                   </div>
-                  <div style={{ display: 'flex', color: verdict.color, fontSize: 28, fontWeight: 700, lineHeight: '1' }}>
+                  <div style={{ display: 'flex', color: verdict.color, fontSize: 34, fontWeight: 700, lineHeight: '1' }}>
                     {pt.score}
                   </div>
                 </div>

@@ -29,7 +29,7 @@ export default function RadarChart({ scores }: Props) {
       chartRef.current.destroy();
     }
 
-    const labels = Object.keys(scores);
+    const labels = Object.entries(scores).map(([k, v]) => [k, `${v}`]);
     const data = Object.values(scores);
 
     chartRef.current = new Chart(canvasRef.current, {
@@ -63,8 +63,9 @@ export default function RadarChart({ scores }: Props) {
               display: false,
             },
             pointLabels: {
-              font: { size: 12 },
-              color: '#374151',
+              font: { size: 14, weight: 'bold' },
+              color: '#1f2937',
+              padding: 10,
             },
             grid: {
               color: 'rgba(0,0,0,0.1)',
