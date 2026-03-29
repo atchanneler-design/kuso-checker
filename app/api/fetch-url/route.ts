@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server';
+import crypto from 'crypto';
+import { getRedis } from '@/lib/redis';
 
 const PRIVATE_IP_PATTERNS = [
   /^localhost$/i,
@@ -43,6 +45,19 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'このURLにはアクセスできません。' }, { status: 403 });
   }
 
+  const redis = getRedis();
+  const urlHash = crypto.createHash('sha256').update(url).digest('hex');
+  const cacheKey = `url:${urlHash}`;
+
+  if (redis) {
+    try {
+      const cached = await redis.get<string>(cacheKey);
+      if (cached) {
+        return Response.json({ text: cached });
+      }
+    } catch { /* ignore */ }
+  }
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -76,7 +91,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return Response.json({ text: text.slice(0, 20000) });
+    const finalTxt = text.slice(0, 20000);
+
+    if (redis) {
+      try {
+        await redis.set(cacheKey, finalTxt, { ex: 60 * 60 * 24 }); // 24 hours
+      } catch { /* ignore */ }
+    }
+
+    return Response.json({ text: finalTxt });
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') {
       return Response.json(

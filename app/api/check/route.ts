@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import { SYSTEM_PROMPT, selectModel } from '@/lib/prompt';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getRedis, RESULT_TTL } from '@/lib/redis';
@@ -44,6 +45,23 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: '20,000文字以内で入力してください。' }, { status: 400 });
   }
 
+  const redis = getRedis();
+  const textHash = crypto.createHash('sha256').update(text).digest('hex');
+  const cacheKey = `hash:${textHash}`;
+
+  if (redis) {
+    try {
+      const cachedId = await redis.get<string>(cacheKey);
+      if (cachedId) {
+        const cachedResultStr = await redis.get(`result:${cachedId}`);
+        if (cachedResultStr) {
+          const cachedResult = typeof cachedResultStr === 'string' ? JSON.parse(cachedResultStr) : cachedResultStr;
+          return Response.json({ ...cachedResult, id: cachedId });
+        }
+      }
+    } catch { /* ignore */ }
+  }
+
   const model = selectModel(text.length);
 
   let rawText = '';
@@ -83,10 +101,10 @@ export async function POST(request: NextRequest) {
 
     // Persist to Redis and return id
     const id = nanoid(8);
-    const redis = getRedis();
     if (redis) {
       try {
         await redis.set(`result:${id}`, JSON.stringify(result), { ex: RESULT_TTL });
+        await redis.set(cacheKey, id, { ex: RESULT_TTL });
       } catch (e) {
         console.error('[check] Redis save error:', e);
       }
