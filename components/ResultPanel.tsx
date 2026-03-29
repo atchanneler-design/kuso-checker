@@ -175,9 +175,9 @@ export default function ResultPanel({ result, id, onReward }: Props) {
             onClick={async () => {
               const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://kuso-checker.vercel.app';
               const url = `${base}/result/${id}`;
-              const text = `${verdict.verdict}（${total}点）\n${verdict.roast}\n\n#クソ記事チェッカー`;
+              const text = `${verdict.verdict}（${total}点）\n${verdict.roast}\n\n#クソ記事チェッカー\nby @ai_article_jp`;
               window.open(
-                `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+                `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}&via=ai_article_jp`,
                 '_blank',
                 'noopener,noreferrer'
               );
