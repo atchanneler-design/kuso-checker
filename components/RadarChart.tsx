@@ -63,9 +63,9 @@ export default function RadarChart({ scores }: Props) {
               display: false,
             },
             pointLabels: {
-              font: { size: 14, weight: 'bold' },
+              font: { size: 18, weight: 'bold' },
               color: '#1f2937',
-              padding: 10,
+              padding: 12,
             },
             grid: {
               color: 'rgba(0,0,0,0.1)',
