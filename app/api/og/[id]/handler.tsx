@@ -3,10 +3,12 @@ import { NextRequest } from 'next/server';
 import { calcTotal, calcDisplayScores } from '@/lib/score';
 import { getVerdict } from '@/lib/verdicts';
 
-async function loadFont(): Promise<ArrayBuffer | null> {
+async function loadFont(text: string): Promise<ArrayBuffer | null> {
+  const uniqText = Array.from(new Set(text.split(''))).sort().join('');
+  const encoded = encodeURIComponent(uniqText);
   try {
     const css = await fetch(
-      'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700',
+      `https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&text=${encoded}`,
       { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' } }
     ).then(r => r.text());
     const url = css.match(/src: url\(([^)]+)\)/)?.[1];
@@ -61,15 +63,27 @@ export async function GET(
   const displayScores = calcDisplayScores(scores);
   const verdict = getVerdict(total);
 
-  const fontData = await loadFont();
+  // Radar chart
+  const axisLabels = ['有害度', '煽り誇大', '情報の薄さ', '囲い込み', '実績の怪しさ'] as const;
+  const axisScores = axisLabels.map(k => displayScores[k]);
+
+  // Extract all characters that will be rendered so Google Fonts can subset the font
+  const allText = [
+    'クソ記事チェッカー',
+    verdict.label,
+    total.toString(),
+    verdict.verdict,
+    verdict.roast,
+    'kuso-checker.vercel.app',
+    ...axisLabels,
+    ...axisScores.map(String)
+  ].join('');
+
+  const fontData = await loadFont(allText);
   const fonts = fontData
     ? [{ name: 'NotoSansJP', data: fontData, weight: 700 as const, style: 'normal' as const }]
     : [];
   const fontFamily = fontData ? 'NotoSansJP, sans-serif' : 'sans-serif';
-
-  // Radar chart
-  const axisLabels = ['有害度', '煽り誇大', '情報の薄さ', '囲い込み', '実績の怪しさ'] as const;
-  const axisScores = axisLabels.map(k => displayScores[k]);
 
   const CX = 310;
   const CY = 265;
