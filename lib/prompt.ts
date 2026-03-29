@@ -81,7 +81,7 @@ export const SYSTEM_PROMPT = `あなたは「クソ記事・情報商材判定AI
 
 export function selectModel(inputLength: number): string {
   const estimatedTokens = Math.floor(inputLength / 2);
-  if (estimatedTokens <= 1000) {
+  if (estimatedTokens <= 1800) {
     return 'claude-haiku-4-5-20251001';
   }
   return 'claude-sonnet-4-20250514';
