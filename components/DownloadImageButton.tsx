@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { type DisplayScores } from '@/lib/score';
 import { type Verdict } from '@/lib/verdicts';
 
@@ -30,34 +30,37 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-/** Character-by-character text wrap for CJK text */
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxLines?: number,
-): string[] {
+/** Character-by-character wrap for CJK text */
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   let line = '';
   for (const char of text) {
     const test = line + char;
     if (ctx.measureText(test).width > maxWidth && line.length > 0) {
       lines.push(line);
-      if (maxLines && lines.length >= maxLines) return lines;
       line = char;
     } else {
       line = test;
     }
   }
-  if (line && (!maxLines || lines.length < maxLines)) lines.push(line);
+  if (line) lines.push(line);
   return lines;
 }
 
-function drawRoundRect(
+function drawDivider(ctx: CanvasRenderingContext2D, x: number, y: number, w: number) {
+  ctx.save();
+  ctx.strokeStyle = '#1e1e1e';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w, y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawRoundedRect(
   ctx: CanvasRenderingContext2D,
-  x: number, y: number,
-  w: number, h: number,
-  r: number,
+  x: number, y: number, w: number, h: number, r: number,
 ) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -72,33 +75,19 @@ function drawRoundRect(
   ctx.closePath();
 }
 
-function drawDivider(ctx: CanvasRenderingContext2D, x: number, y: number, w: number) {
-  ctx.save();
-  ctx.strokeStyle = '#1e1e1e';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + w, y);
-  ctx.stroke();
-  ctx.restore();
-}
-
 function drawRadar(
   ctx: CanvasRenderingContext2D,
   cx: number, cy: number, maxR: number,
   scores: number[],
   labels: string[],
   color: string,
-  labelFontSize: number,
 ) {
   const N = 5;
   const angles = Array.from({ length: N }, (_, i) => (Math.PI * 2 * i / N) - Math.PI / 2);
   const [cr, cg, cb] = hexToRgb(color);
 
-  ctx.save();
-
   // Grid pentagons
-  for (const [ratio, stroke] of ([[1, '#333'], [0.66, '#252525'], [0.33, '#1e1e1e']] as [number, string][])) {
+  for (const [ratio, stroke] of [[1, '#333'], [0.66, '#252525'], [0.33, '#1e1e1e']] as [number, string][]) {
     ctx.beginPath();
     angles.forEach((a, i) => {
       const px = cx + maxR * ratio * Math.cos(a);
@@ -124,9 +113,9 @@ function drawRadar(
   // Data polygon
   ctx.beginPath();
   angles.forEach((a, i) => {
-    const rr = (scores[i] / 100) * maxR;
-    const px = cx + rr * Math.cos(a);
-    const py = cy + rr * Math.sin(a);
+    const r = (scores[i] / 100) * maxR;
+    const px = cx + r * Math.cos(a);
+    const py = cy + r * Math.sin(a);
     i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
   });
   ctx.closePath();
@@ -136,121 +125,102 @@ function drawRadar(
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  // Vertex dots
+  // Dots
   angles.forEach((a, i) => {
-    const rr = (scores[i] / 100) * maxR;
+    const r = (scores[i] / 100) * maxR;
     ctx.beginPath();
-    ctx.arc(cx + rr * Math.cos(a), cy + rr * Math.sin(a), 5, 0, Math.PI * 2);
+    ctx.arc(cx + r * Math.cos(a), cy + r * Math.sin(a), 5, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
   });
 
-  // Labels
-  const labelR = maxR + Math.round(labelFontSize * 2.8);
+  // Labels (axis name + score value)
+  const labelR = maxR + 48;
   ctx.textBaseline = 'middle';
   angles.forEach((a, i) => {
     const lx = cx + labelR * Math.cos(a);
     const ly = cy + labelR * Math.sin(a);
     const align: CanvasTextAlign = Math.abs(lx - cx) < 20 ? 'center' : lx < cx ? 'right' : 'left';
     ctx.textAlign = align;
-    ctx.font = `${labelFontSize}px sans-serif`;
+    ctx.font = '16px sans-serif';
     ctx.fillStyle = '#666';
-    ctx.fillText(labels[i], lx, ly - labelFontSize);
-    ctx.font = `bold ${Math.round(labelFontSize * 1.55)}px sans-serif`;
+    ctx.fillText(labels[i], lx, ly - 16);
+    ctx.font = 'bold 24px sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(String(scores[i]), lx, ly + Math.round(labelFontSize * 0.7));
+    ctx.fillText(String(scores[i]), lx, ly + 10);
   });
-
-  ctx.restore();
 }
 
-// ---- Main draw function ----
+// ---- Render all sections, returns final Y ----
 
-async function generateCanvas(
-  format: Format,
+function renderAll(
+  ctx: CanvasRenderingContext2D,
+  W: number,
+  PAD: number,
+  IW: number,
   total: number,
   displayScores: DisplayScores,
   verdict: Verdict,
   result: ApiResult,
-): Promise<HTMLCanvasElement> {
-  const isStory = format === 'story';
-  const W = isStory ? 1080 : 1200;
-  const H = isStory ? 1920 : 1200;
-  // Scale factor: story uses full size, square is more compact
-  const S = isStory ? 1.0 : 0.78;
-
-  const PAD = Math.round(60 * S);
-  const IW = W - PAD * 2;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d')!;
-
-  // Background
+): number {
+  // Background (fill oversized)
   ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, W, 9000);
 
   let y = 0;
 
-  // ---- HEADER ----
-  const headerH = Math.round(230 * S);
+  // ---- 1. HEADER ----
+  const HEADER_H = 240;
   ctx.fillStyle = verdict.color;
-  ctx.fillRect(0, 0, W, headerH);
+  ctx.fillRect(0, 0, W, HEADER_H);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = `${Math.round(17 * S)}px sans-serif`;
+  ctx.font = '17px sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.fillText('クソ記事チェッカー', W / 2, Math.round(42 * S));
+  ctx.fillText('クソ記事チェッカー', W / 2, 42);
 
   // Badge pill
-  const badgeFS = Math.round(20 * S);
-  ctx.font = `bold ${badgeFS}px sans-serif`;
-  const bw = ctx.measureText(verdict.label).width + Math.round(44 * S);
-  const bh = Math.round(36 * S);
+  ctx.font = 'bold 20px sans-serif';
+  const bw = ctx.measureText(verdict.label).width + 44;
+  const bh = 36;
   const bx = (W - bw) / 2;
-  const by = Math.round(68 * S);
+  const by = 70;
   ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  drawRoundRect(ctx, bx, by, bw, bh, bh / 2);
+  drawRoundedRect(ctx, bx, by, bw, bh, 18);
   ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.fillText(verdict.label, W / 2, by + bh / 2);
+  ctx.fillText(verdict.label, W / 2, by + 18);
 
-  y = headerH + Math.round(42 * S);
+  y = HEADER_H + 50;
 
-  // ---- SCORE ----
-  const scoreFS = Math.round(190 * S);
-  ctx.font = `bold ${scoreFS}px sans-serif`;
+  // ---- 2. SCORE ----
+  ctx.font = 'bold 180px sans-serif';
   ctx.fillStyle = verdict.color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.fillText(String(total), W / 2, y);
-  y += scoreFS + Math.round(6 * S);
+  y += 180 + 8;
 
-  const verdictFS = Math.round(40 * S);
-  ctx.font = `bold ${verdictFS}px sans-serif`;
+  ctx.font = 'bold 40px sans-serif';
   ctx.fillStyle = '#fff';
   ctx.fillText(verdict.verdict, W / 2, y);
-  y += verdictFS + Math.round(12 * S);
+  y += 40 + 12;
 
-  const roastFS = Math.round(21 * S);
-  ctx.font = `italic ${roastFS}px sans-serif`;
+  ctx.font = 'italic 22px sans-serif';
   ctx.fillStyle = '#888';
-  const roastLines = wrapText(ctx, verdict.roast, IW, 2);
-  roastLines.forEach(line => {
+  wrapText(ctx, verdict.roast, IW).forEach(line => {
     ctx.fillText(line, W / 2, y);
-    y += Math.round(roastFS * 1.65);
+    y += 36;
   });
-  y += Math.round(16 * S);
+  y += 22;
 
   drawDivider(ctx, PAD, y, IW);
-  y += Math.round(36 * S);
+  y += 40;
 
-  // ---- RADAR CHART ----
-  const radarR = Math.round(165 * S);
-  const radarCY = y + radarR + Math.round(46 * S);
-
+  // ---- 3. RADAR CHART ----
+  const RADAR_R = 168;
+  const radarCY = y + RADAR_R + 46;
   const axisLabels = ['有害度', '煽り誇大', '情報の薄さ', '囲い込み', '実績の怪しさ'];
   const axisScores = [
     displayScores['有害度'],
@@ -259,91 +229,232 @@ async function generateCanvas(
     displayScores['囲い込み'],
     displayScores['実績の怪しさ'],
   ];
-
-  drawRadar(ctx, W / 2, radarCY, radarR, axisScores, axisLabels, verdict.color, Math.round(15 * S));
-  y = radarCY + radarR + Math.round(65 * S);
+  drawRadar(ctx, W / 2, radarCY, RADAR_R, axisScores, axisLabels, verdict.color);
+  y = radarCY + RADAR_R + 72;
 
   drawDivider(ctx, PAD, y, IW);
-  y += Math.round(36 * S);
+  y += 40;
 
-  // ---- COMMENT ----
-  const titleFS = Math.round(13 * S);
-  const bodyFS = Math.round(20 * S);
-  const bodyLH = Math.round(bodyFS * 1.65);
+  // ---- Helper: section title + body text ----
+  const TITLE_FS = 13;
+  const BODY_FS = 20;
+  const BODY_LH = 33;
 
-  ctx.font = `bold ${titleFS}px sans-serif`;
-  ctx.fillStyle = '#555';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  ctx.fillText('総評', PAD, y);
-  y += titleFS + Math.round(12 * S);
-
-  ctx.font = `${bodyFS}px sans-serif`;
-  ctx.fillStyle = '#ccc';
-  const commentLines = wrapText(ctx, result.comment, IW, isStory ? 6 : 3);
-  commentLines.forEach(line => {
-    ctx.fillText(line, PAD, y);
-    y += bodyLH;
-  });
-  y += Math.round(14 * S);
-
-  // ---- HOW TO USE (story only) ----
-  if (result.how_to_use && isStory) {
-    drawDivider(ctx, PAD, y, IW);
-    y += Math.round(36 * S);
-
-    ctx.font = `bold ${titleFS}px sans-serif`;
+  function drawSection(title: string, text: string, textColor = '#ccc') {
+    ctx.font = `bold ${TITLE_FS}px sans-serif`;
     ctx.fillStyle = '#555';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('この記事の使い方', PAD, y);
-    y += titleFS + Math.round(12 * S);
+    ctx.fillText(title, PAD, y);
+    y += TITLE_FS + 12;
 
-    ctx.font = `${bodyFS}px sans-serif`;
-    ctx.fillStyle = '#ccc';
-    const howLines = wrapText(ctx, result.how_to_use, IW, 4);
-    howLines.forEach(line => {
+    ctx.font = `${BODY_FS}px sans-serif`;
+    ctx.fillStyle = textColor;
+    wrapText(ctx, text, IW).forEach(line => {
       ctx.fillText(line, PAD, y);
-      y += bodyLH;
+      y += BODY_LH;
     });
-    y += Math.round(14 * S);
+    y += 14;
   }
 
-  // ---- EVIDENCE (story only) ----
-  const evidenceItems = result.evidence.slice(0, 3);
-  if (evidenceItems.length > 0 && isStory) {
-    drawDivider(ctx, PAD, y, IW);
-    y += Math.round(36 * S);
+  // ---- 4. COMMENT ----
+  drawSection('総評', result.comment);
 
-    ctx.font = `bold ${titleFS}px sans-serif`;
+  // ---- 5. LAYERS ----
+  if (result.good_layer || result.kuso_layer) {
+    drawDivider(ctx, PAD, y, IW);
+    y += 36;
+
+    const GAP = 16;
+    const BOX_W = (IW - GAP) / 2;
+    const BOX_PAD = 18;
+    const CONTENT_W = BOX_W - BOX_PAD * 2;
+    const BOX_TITLE_FS = 12;
+    const BOX_BODY_FS = 18;
+    const BOX_LH = 30;
+
+    const goodText = result.good_layer ?? '価値のある部分は見当たらない';
+    const kusoText = result.kuso_layer ?? 'クソ要素は見当たらない';
+
+    function measureBox(text: string): number {
+      ctx.font = `${BOX_BODY_FS}px sans-serif`;
+      return BOX_PAD * 2 + BOX_TITLE_FS + 10 + wrapText(ctx, text, CONTENT_W).length * BOX_LH;
+    }
+
+    const boxH = Math.max(measureBox(goodText), measureBox(kusoText));
+
+    // Good layer
+    ctx.fillStyle = 'rgba(29,158,117,0.1)';
+    drawRoundedRect(ctx, PAD, y, BOX_W, boxH, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(29,158,117,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = `bold ${BOX_TITLE_FS}px sans-serif`;
+    ctx.fillStyle = '#1D9E75';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('本物の層', PAD + BOX_PAD, y + BOX_PAD);
+
+    ctx.font = `${BOX_BODY_FS}px sans-serif`;
+    ctx.fillStyle = '#aaa';
+    let gy = y + BOX_PAD + BOX_TITLE_FS + 10;
+    wrapText(ctx, goodText, CONTENT_W).forEach(line => {
+      ctx.fillText(line, PAD + BOX_PAD, gy);
+      gy += BOX_LH;
+    });
+
+    // Kuso layer
+    const kx = PAD + BOX_W + GAP;
+    ctx.fillStyle = 'rgba(226,75,74,0.1)';
+    drawRoundedRect(ctx, kx, y, BOX_W, boxH, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(226,75,74,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = `bold ${BOX_TITLE_FS}px sans-serif`;
+    ctx.fillStyle = '#E24B4A';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('クソの層', kx + BOX_PAD, y + BOX_PAD);
+
+    ctx.font = `${BOX_BODY_FS}px sans-serif`;
+    ctx.fillStyle = '#aaa';
+    let ky = y + BOX_PAD + BOX_TITLE_FS + 10;
+    wrapText(ctx, kusoText, CONTENT_W).forEach(line => {
+      ctx.fillText(line, kx + BOX_PAD, ky);
+      ky += BOX_LH;
+    });
+
+    y += boxH + 14;
+  }
+
+  // ---- 6. HOW TO USE ----
+  if (result.how_to_use) {
+    drawDivider(ctx, PAD, y, IW);
+    y += 36;
+    drawSection('この記事の使い方', result.how_to_use);
+  }
+
+  // ---- 7. EVIDENCE ----
+  if (result.evidence.length > 0) {
+    drawDivider(ctx, PAD, y, IW);
+    y += 36;
+
+    ctx.font = `bold ${TITLE_FS}px sans-serif`;
     ctx.fillStyle = '#555';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('検出フレーズ', PAD, y);
-    y += titleFS + Math.round(12 * S);
+    ctx.fillText('検出フレーズ・構造的問題', PAD, y);
+    y += TITLE_FS + 12;
 
-    const evidFS = Math.round(17 * S);
-    const evidLH = Math.round(evidFS * 1.7);
-    evidenceItems.forEach(item => {
-      ctx.font = `${evidFS}px sans-serif`;
-      ctx.fillStyle = '#aaa';
-      const lines = wrapText(ctx, `• ${item}`, IW, 2);
-      lines.forEach(line => {
-        ctx.fillText(line, PAD, y);
-        y += evidLH;
+    const EV_FS = 18;
+    const EV_LH = 30;
+    const ICON_W = 26;
+
+    result.evidence.forEach(item => {
+      ctx.font = `${EV_FS}px sans-serif`;
+      const lines = wrapText(ctx, item, IW - ICON_W);
+      lines.forEach((line, li) => {
+        if (li === 0) {
+          ctx.fillStyle = '#EF9F27';
+          ctx.fillText('⚠', PAD, y);
+          ctx.fillStyle = '#aaa';
+          ctx.fillText(line, PAD + ICON_W, y);
+        } else {
+          ctx.fillStyle = '#aaa';
+          ctx.fillText(line, PAD + ICON_W, y);
+        }
+        y += EV_LH;
       });
-      y += Math.round(5 * S);
+      y += 6;
     });
+    y += 8;
   }
 
-  // ---- FOOTER (anchored to bottom) ----
-  const footerY = H - Math.round(52 * S);
-  drawDivider(ctx, PAD, footerY - 10, IW);
-  ctx.font = `${Math.round(16 * S)}px sans-serif`;
+  // ---- 8. PRICE WARNING ----
+  if (result.price_warning) {
+    drawDivider(ctx, PAD, y, IW);
+    y += 36;
+
+    const PW_FS = 18;
+    const PW_LH = 30;
+    const PW_BOX_PAD = 20;
+
+    ctx.font = `${PW_FS}px sans-serif`;
+    const pwLines = wrapText(ctx, result.price_warning, IW - PW_BOX_PAD * 2);
+    const pwBoxH = PW_BOX_PAD * 2 + TITLE_FS + 10 + pwLines.length * PW_LH;
+
+    ctx.fillStyle = 'rgba(239,159,39,0.1)';
+    drawRoundedRect(ctx, PAD, y, IW, pwBoxH, 12);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(239,159,39,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.font = `bold ${TITLE_FS}px sans-serif`;
+    ctx.fillStyle = '#EF9F27';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('値段・購入に関する注意', PAD + PW_BOX_PAD, y + PW_BOX_PAD);
+
+    ctx.font = `${PW_FS}px sans-serif`;
+    ctx.fillStyle = '#c8900a';
+    let pwy = y + PW_BOX_PAD + TITLE_FS + 10;
+    pwLines.forEach(line => {
+      ctx.fillText(line, PAD + PW_BOX_PAD, pwy);
+      pwy += PW_LH;
+    });
+
+    y += pwBoxH + 14;
+  }
+
+  // ---- 9. FOOTER ----
+  drawDivider(ctx, PAD, y, IW);
+  y += 28;
+  ctx.font = '16px sans-serif';
   ctx.fillStyle = '#444';
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('kuso-checker.vercel.app', W / 2, footerY + 20);
+  ctx.textBaseline = 'top';
+  ctx.fillText('kuso-checker.vercel.app', W / 2, y);
+  y += 16 + 44;
+
+  return y;
+}
+
+// ---- Generate final canvas ----
+
+function generateCanvas(
+  format: Format,
+  total: number,
+  displayScores: DisplayScores,
+  verdict: Verdict,
+  result: ApiResult,
+): HTMLCanvasElement {
+  const W = format === 'story' ? 1080 : 1200;
+  const MIN_H = format === 'story' ? 1920 : 1200;
+  const PAD = format === 'story' ? 60 : 80;
+  const IW = W - PAD * 2;
+
+  // Pass 1: measure height using a minimal canvas
+  const measureCanvas = document.createElement('canvas');
+  measureCanvas.width = W;
+  measureCanvas.height = 100;
+  const contentH = renderAll(
+    measureCanvas.getContext('2d')!,
+    W, PAD, IW,
+    total, displayScores, verdict, result,
+  );
+
+  const H = Math.max(MIN_H, contentH);
+
+  // Pass 2: draw on properly-sized canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  renderAll(canvas.getContext('2d')!, W, PAD, IW, total, displayScores, verdict, result);
 
   return canvas;
 }
@@ -351,74 +462,136 @@ async function generateCanvas(
 // ---- Component ----
 
 export default function DownloadImageButton({ total, displayScores, verdict, result }: Props) {
+  const [modalOpen, setModalOpen] = useState(false);
   const [format, setFormat] = useState<Format>('story');
   const [generating, setGenerating] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleDownload = async () => {
+  const generate = useCallback(() => {
     setGenerating(true);
-    try {
-      const canvas = await generateCanvas(format, total, displayScores, verdict, result);
-      const url = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `kuso-checker-${format === 'story' ? '1080x1920' : '1200x1200'}.png`;
-      a.click();
-    } finally {
-      setGenerating(false);
+    setPreviewUrl(null);
+    // Defer to allow React to render the spinner first
+    setTimeout(() => {
+      try {
+        const canvas = generateCanvas(format, total, displayScores, verdict, result);
+        setPreviewUrl(canvas.toDataURL('image/png'));
+      } finally {
+        setGenerating(false);
+      }
+    }, 20);
+  }, [format, total, displayScores, verdict, result]);
+
+  // Generate when modal opens or format changes
+  useEffect(() => {
+    if (!modalOpen) {
+      setPreviewUrl(null);
+      return;
     }
+    generate();
+  }, [modalOpen, generate]);
+
+  const handleDownload = () => {
+    if (!previewUrl) return;
+    const a = document.createElement('a');
+    a.href = previewUrl;
+    a.download = `kuso-checker-${format === 'story' ? '1080x1920' : '1200x1200'}.png`;
+    a.click();
   };
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* Format selector */}
-      <div className="flex rounded-full bg-gray-100 p-1 text-sm">
-        <button
-          onClick={() => setFormat('story')}
-          className={`px-4 py-1.5 rounded-full font-medium transition-colors ${
-            format === 'story'
-              ? 'bg-white shadow text-gray-900'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          ストーリー 1080×1920
-        </button>
-        <button
-          onClick={() => setFormat('square')}
-          className={`px-4 py-1.5 rounded-full font-medium transition-colors ${
-            format === 'square'
-              ? 'bg-white shadow text-gray-900'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          正方形 1200×1200
-        </button>
-      </div>
-
-      {/* Download button */}
+    <>
+      {/* Trigger button */}
       <button
-        onClick={handleDownload}
-        disabled={generating}
-        className="flex items-center gap-2 bg-gray-900 hover:bg-gray-700 disabled:opacity-50 text-white text-sm font-bold px-6 py-3 rounded-full transition-colors"
+        onClick={() => setModalOpen(true)}
+        className="flex items-center gap-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-bold px-6 py-3 rounded-full transition-colors"
       >
-        {generating ? (
-          <>
-            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            生成中…
-          </>
-        ) : (
-          <>
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            結果画像をダウンロード
-          </>
-        )}
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        結果画像をダウンロード
       </button>
-    </div>
+
+      {/* Modal overlay */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="bg-[#111] rounded-2xl overflow-hidden w-full max-w-[400px] flex flex-col"
+            style={{ maxHeight: '90vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
+              <span className="text-white font-bold text-sm">結果画像</span>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-gray-500 hover:text-gray-300 transition-colors"
+                aria-label="閉じる"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Format tabs */}
+            <div className="px-5 pb-4 flex-shrink-0">
+              <div className="flex rounded-full bg-[#222] p-1 text-xs">
+                {(['story', 'square'] as Format[]).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFormat(f)}
+                    className={`flex-1 py-1.5 rounded-full font-medium transition-colors ${
+                      format === f
+                        ? 'bg-white text-gray-900'
+                        : 'text-gray-500 hover:text-gray-300'
+                    }`}
+                  >
+                    {f === 'story' ? 'ストーリー 1080×1920' : '正方形 1200×1200'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview (scrollable) */}
+            <div className="flex-1 overflow-y-auto px-5 pb-4 min-h-0">
+              <div className="bg-black rounded-xl overflow-hidden">
+                {generating ? (
+                  <div className="flex items-center justify-center h-48 text-gray-500 text-sm gap-2">
+                    <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    生成中…
+                  </div>
+                ) : previewUrl ? (
+                  <img src={previewUrl} alt="プレビュー" className="w-full h-auto block" />
+                ) : null}
+              </div>
+            </div>
+
+            {/* Download button */}
+            <div className="px-5 pt-3 pb-5 border-t border-[#1e1e1e] flex-shrink-0">
+              <button
+                onClick={handleDownload}
+                disabled={!previewUrl || generating}
+                className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-200 disabled:opacity-40 text-gray-900 text-sm font-bold py-3 rounded-full transition-colors"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                ダウンロード
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
