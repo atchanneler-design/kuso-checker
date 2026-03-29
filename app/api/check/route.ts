@@ -68,7 +68,17 @@ export async function POST(request: NextRequest) {
     }
 
     rawText = content.text;
-    const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    
+    // AIの回答からJSON文字列（ { 〜 } ）だけを抜き出す安全なパース
+    const firstBraceIndex = rawText.indexOf('{');
+    const lastBraceIndex = rawText.lastIndexOf('}');
+    
+    if (firstBraceIndex === -1 || lastBraceIndex === -1) {
+      console.error('[check] JSON braces not found in Claude response:', rawText);
+      throw new Error('No JSON structure found in response');
+    }
+    
+    const cleaned = rawText.substring(firstBraceIndex, lastBraceIndex + 1);
     const result = JSON.parse(cleaned);
 
     // Persist to Redis and return id
