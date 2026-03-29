@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { nanoid } from 'nanoid';
 import crypto from 'crypto';
-import { SYSTEM_PROMPT, selectModel } from '@/lib/prompt';
+import { SYSTEM_PROMPT, MODEL } from '@/lib/prompt';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getRedis, RESULT_TTL } from '@/lib/redis';
 
@@ -62,12 +62,10 @@ export async function POST(request: NextRequest) {
     } catch { /* ignore */ }
   }
 
-  const model = selectModel(text.length);
-
   let rawText = '';
   try {
     const message = await anthropic.messages.create({
-      model,
+      model: MODEL,
       max_tokens: 2048,
       system: [
         {
