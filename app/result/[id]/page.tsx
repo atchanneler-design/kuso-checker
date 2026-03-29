@@ -31,13 +31,13 @@ export async function generateMetadata(
     openGraph: {
       title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
       description: result.comment,
-      images: [{ url: `${baseUrl}/api/og/${id}`, width: 1200, height: 630 }],
+      images: [{ url: `${baseUrl}/api/og/${id}?v=2`, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
       description: result.comment,
-      images: [`${baseUrl}/api/og/${id}`],
+      images: [`${baseUrl}/api/og/${id}?v=2`],
     },
   };
 }
