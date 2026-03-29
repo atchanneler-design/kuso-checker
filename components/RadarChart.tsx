@@ -50,6 +50,9 @@ export default function RadarChart({ scores }: Props) {
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        layout: {
+          padding: 10,
+        },
         animation: {
           duration: 800,
           easing: 'easeInOutQuart',
@@ -65,7 +68,7 @@ export default function RadarChart({ scores }: Props) {
             pointLabels: {
               font: { size: 18, weight: 'bold' },
               color: '#1f2937',
-              padding: 12,
+              padding: 15,
             },
             grid: {
               color: 'rgba(0,0,0,0.1)',

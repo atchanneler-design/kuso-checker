@@ -170,7 +170,7 @@ export async function GET(
           <span
             style={{
               display: 'flex',
-              fontSize: 180,
+              fontSize: 140,
               fontWeight: 700,
               color: verdict.color,
               lineHeight: '0.88',
@@ -184,25 +184,25 @@ export async function GET(
           <span
             style={{
               display: 'flex',
-              fontSize: 40,
+              fontSize: 44,
               fontWeight: 700,
               color: '#ffffff',
-              marginTop: '14px',
+              marginTop: '10px',
               lineHeight: '1.2',
             }}
           >
             {verdict.verdict}
           </span>
 
-          {/* Roast – keep at 21px so long strings don't overflow vertically */}
+          {/* Roast */}
           <span
             style={{
               display: 'flex',
-              fontSize: 21,
+              fontSize: 24,
               fontWeight: 700,
-              color: '#e8e8e8',
+              color: '#ffffff',
               marginTop: '16px',
-              lineHeight: '1.65',
+              lineHeight: '1.8',
             }}
           >
             {verdict.roast}

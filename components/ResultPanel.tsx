@@ -68,11 +68,13 @@ export default function ResultPanel({ result, id }: Props) {
       </div>
 
       {/* Radar Chart */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-4 text-center">
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex flex-col items-center">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-6">
           クソ度分析レーダー
         </h3>
-        <RadarChart scores={displayScores} />
+        <div className="w-full flex justify-center">
+          <RadarChart scores={displayScores} />
+        </div>
       </div>
 
       {/* Comment */}

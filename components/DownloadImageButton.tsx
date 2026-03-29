@@ -133,19 +133,19 @@ function drawRadar(
   });
 
   // Labels (axis name + score value)
-  const labelR = maxR + 48;
+  const labelR = maxR + 58;
   ctx.textBaseline = 'middle';
   angles.forEach((a, i) => {
     const lx = cx + labelR * Math.cos(a);
     const ly = cy + labelR * Math.sin(a);
     const align: CanvasTextAlign = Math.abs(lx - cx) < 20 ? 'center' : lx < cx ? 'right' : 'left';
     ctx.textAlign = align;
-    ctx.font = '16px sans-serif';
-    ctx.fillStyle = '#666';
-    ctx.fillText(labels[i], lx, ly - 16);
-    ctx.font = 'bold 24px sans-serif';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillStyle = '#aaa';
+    ctx.fillText(labels[i], lx, ly - 22);
+    ctx.font = 'bold 38px sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(String(scores[i]), lx, ly + 10);
+    ctx.fillText(String(scores[i]), lx, ly + 18);
   });
 }
 
@@ -193,32 +193,33 @@ function renderAll(
   y = HEADER_H + 50;
 
   // ---- 2. SCORE ----
-  ctx.font = 'bold 180px sans-serif';
+  ctx.font = 'bold 150px sans-serif';
   ctx.fillStyle = verdict.color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
   ctx.fillText(String(total), W / 2, y);
-  y += 180 + 8;
+  y += 150 + 8;
 
-  ctx.font = 'bold 40px sans-serif';
+  ctx.font = 'bold 44px sans-serif';
   ctx.fillStyle = '#fff';
   ctx.fillText(verdict.verdict, W / 2, y);
-  y += 40 + 12;
+  y += 44 + 16;
 
-  ctx.font = 'italic 22px sans-serif';
-  ctx.fillStyle = '#888';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillStyle = '#eee';
+  ctx.textBaseline = 'top';
   wrapText(ctx, verdict.roast, IW).forEach(line => {
     ctx.fillText(line, W / 2, y);
-    y += 36;
+    y += 46;
   });
-  y += 22;
+  y += 24;
 
   drawDivider(ctx, PAD, y, IW);
-  y += 40;
+  y += 50;
 
   // ---- 3. RADAR CHART ----
-  const RADAR_R = 168;
-  const radarCY = y + RADAR_R + 46;
+  const RADAR_R = 175;
+  const radarCY = y + RADAR_R + 60;
   const axisLabels = ['有害度', '煽り誇大', '情報の薄さ', '囲い込み', '実績の怪しさ'];
   const axisScores = [
     displayScores['有害度'],
@@ -228,7 +229,7 @@ function renderAll(
     displayScores['実績の怪しさ'],
   ];
   drawRadar(ctx, W / 2, radarCY, RADAR_R, axisScores, axisLabels, verdict.color);
-  y = radarCY + RADAR_R + 72;
+  y = radarCY + RADAR_R + 90;
 
   drawDivider(ctx, PAD, y, IW);
   y += 40;
