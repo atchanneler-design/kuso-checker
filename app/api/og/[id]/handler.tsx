@@ -205,52 +205,59 @@ export async function GET(
             justifyContent: 'center',
           }}
         >
-          <svg width="620" height="530" xmlns="http://www.w3.org/2000/svg">
-            {/* Grid pentagons */}
-            <polygon points={gridPoly(CX, CY, MAX_R)} fill="none" stroke="#222" strokeWidth="1.5" />
-            <polygon points={gridPoly(CX, CY, MAX_R * 0.66)} fill="none" stroke="#1e1e1e" strokeWidth="1" />
-            <polygon points={gridPoly(CX, CY, MAX_R * 0.33)} fill="none" stroke="#1a1a1a" strokeWidth="1" />
+          <div style={{ position: 'relative', display: 'flex', width: '620px', height: '530px' }}>
+            <svg width="620" height="530" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
+              {/* Grid pentagons */}
+              <polygon points={gridPoly(CX, CY, MAX_R)} fill="none" stroke="#222" strokeWidth="1.5" />
+              <polygon points={gridPoly(CX, CY, MAX_R * 0.66)} fill="none" stroke="#1e1e1e" strokeWidth="1" />
+              <polygon points={gridPoly(CX, CY, MAX_R * 0.33)} fill="none" stroke="#1a1a1a" strokeWidth="1" />
 
-            {/* Axis lines */}
-            <line x1={CX} y1={CY} x2={axisLines[0].x} y2={axisLines[0].y} stroke="#222" strokeWidth="1" />
-            <line x1={CX} y1={CY} x2={axisLines[1].x} y2={axisLines[1].y} stroke="#222" strokeWidth="1" />
-            <line x1={CX} y1={CY} x2={axisLines[2].x} y2={axisLines[2].y} stroke="#222" strokeWidth="1" />
-            <line x1={CX} y1={CY} x2={axisLines[3].x} y2={axisLines[3].y} stroke="#222" strokeWidth="1" />
-            <line x1={CX} y1={CY} x2={axisLines[4].x} y2={axisLines[4].y} stroke="#222" strokeWidth="1" />
+              {/* Axis lines */}
+              <line x1={CX} y1={CY} x2={axisLines[0].x} y2={axisLines[0].y} stroke="#222" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[1].x} y2={axisLines[1].y} stroke="#222" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[2].x} y2={axisLines[2].y} stroke="#222" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[3].x} y2={axisLines[3].y} stroke="#222" strokeWidth="1" />
+              <line x1={CX} y1={CY} x2={axisLines[4].x} y2={axisLines[4].y} stroke="#222" strokeWidth="1" />
 
-            {/* Data fill */}
-            <polygon
-              points={dataPoly(CX, CY, axisScores, MAX_R)}
-              fill={verdict.color}
-              fillOpacity="0.22"
-              stroke={verdict.color}
-              strokeWidth="2.5"
-              strokeLinejoin="round"
-            />
+              {/* Data fill */}
+              <polygon
+                points={dataPoly(CX, CY, axisScores, MAX_R)}
+                fill={verdict.color}
+                fillOpacity="0.22"
+                stroke={verdict.color}
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+              />
 
-            {/* Vertex dots */}
-            <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="5.5" fill={verdict.color} />
-            <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="5.5" fill={verdict.color} />
-            <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="5.5" fill={verdict.color} />
-            <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="5.5" fill={verdict.color} />
-            <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="5.5" fill={verdict.color} />
+              {/* Vertex dots */}
+              <circle cx={dotPoints[0].x} cy={dotPoints[0].y} r="5.5" fill={verdict.color} />
+              <circle cx={dotPoints[1].x} cy={dotPoints[1].y} r="5.5" fill={verdict.color} />
+              <circle cx={dotPoints[2].x} cy={dotPoints[2].y} r="5.5" fill={verdict.color} />
+              <circle cx={dotPoints[3].x} cy={dotPoints[3].y} r="5.5" fill={verdict.color} />
+              <circle cx={dotPoints[4].x} cy={dotPoints[4].y} r="5.5" fill={verdict.color} />
+            </svg>
 
-            {/* Labels */}
-            <text x={labelPoints[0].lx} y={labelPoints[0].ly - 7} textAnchor={labelPoints[0].anchor} fill="#888" fontSize="14" fontFamily={fontFamily}>{labelPoints[0].label}</text>
-            <text x={labelPoints[0].lx} y={labelPoints[0].ly + 18} textAnchor={labelPoints[0].anchor} fill={verdict.color} fontSize="22" fontWeight="700" fontFamily={fontFamily}>{labelPoints[0].score}</text>
-
-            <text x={labelPoints[1].lx} y={labelPoints[1].ly - 7} textAnchor={labelPoints[1].anchor} fill="#888" fontSize="14" fontFamily={fontFamily}>{labelPoints[1].label}</text>
-            <text x={labelPoints[1].lx} y={labelPoints[1].ly + 18} textAnchor={labelPoints[1].anchor} fill={verdict.color} fontSize="22" fontWeight="700" fontFamily={fontFamily}>{labelPoints[1].score}</text>
-
-            <text x={labelPoints[2].lx} y={labelPoints[2].ly - 7} textAnchor={labelPoints[2].anchor} fill="#888" fontSize="14" fontFamily={fontFamily}>{labelPoints[2].label}</text>
-            <text x={labelPoints[2].lx} y={labelPoints[2].ly + 18} textAnchor={labelPoints[2].anchor} fill={verdict.color} fontSize="22" fontWeight="700" fontFamily={fontFamily}>{labelPoints[2].score}</text>
-
-            <text x={labelPoints[3].lx} y={labelPoints[3].ly - 7} textAnchor={labelPoints[3].anchor} fill="#888" fontSize="14" fontFamily={fontFamily}>{labelPoints[3].label}</text>
-            <text x={labelPoints[3].lx} y={labelPoints[3].ly + 18} textAnchor={labelPoints[3].anchor} fill={verdict.color} fontSize="22" fontWeight="700" fontFamily={fontFamily}>{labelPoints[3].score}</text>
-
-            <text x={labelPoints[4].lx} y={labelPoints[4].ly - 7} textAnchor={labelPoints[4].anchor} fill="#888" fontSize="14" fontFamily={fontFamily}>{labelPoints[4].label}</text>
-            <text x={labelPoints[4].lx} y={labelPoints[4].ly + 18} textAnchor={labelPoints[4].anchor} fill={verdict.color} fontSize="22" fontWeight="700" fontFamily={fontFamily}>{labelPoints[4].score}</text>
-          </svg>
+            {/* Labels overlay (Satori does not support <text> inside <svg>) */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex' }}>
+              {labelPoints.map((pt, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: pt.anchor === 'start' ? pt.lx : pt.anchor === 'end' ? pt.lx - 200 : pt.lx - 100,
+                    top: pt.ly - 20,
+                    width: '200px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: pt.anchor === 'start' ? 'flex-start' : pt.anchor === 'end' ? 'flex-end' : 'center',
+                  }}
+                >
+                  <div style={{ display: 'flex', color: '#888', fontSize: 14 }}>{pt.label}</div>
+                  <div style={{ display: 'flex', color: verdict.color, fontSize: 22, fontWeight: 700, marginTop: 4 }}>{pt.score}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     ),
