@@ -81,8 +81,10 @@ export default function Home() {
       <div className="bg-gradient-to-br from-red-600 to-red-800 text-white py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-3xl font-black mb-2">クソ記事チェッカー</h1>
-          <p className="text-red-200 text-sm">
-            情報商材・怪しい記事の危険度を判定します。有料記事の無料部分をコピペするだけでOK。
+          <p className="text-red-100 text-sm font-medium leading-relaxed mt-3">
+            <strong>「これって買う価値ある？」</strong><br />
+            怪しい情報商材や高額な有料記事の危険度をAIが判定します。<br />
+            購入する前に無料公開部分をコピペして、中身の薄さや詐欺リスクを確かめましょう。
           </p>
           <p className="text-red-300/70 text-xs mt-2">
             1日3回まで無料で利用できます（JST 0時リセット）

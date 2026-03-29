@@ -105,7 +105,7 @@ export default function InputPanel({ onSubmit, loading, remaining }: Props) {
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="記事本文・タイトル・SNS投稿などを貼り付けてください..."
+            placeholder={"怪しい情報商材の紹介文や、有料記事の無料公開部分を貼り付けてください。\n（例：「スマホを1日5分ポチポチするだけで月収30万円！」「AIに全て任せてコピペで稼ぐ完全自動の不労所得ノウハウ」など）"}
             className="w-full h-48 p-4 border border-gray-300 rounded-lg resize-none text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
             disabled={isLoading}
           />

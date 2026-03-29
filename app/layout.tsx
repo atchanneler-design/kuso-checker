@@ -5,12 +5,12 @@ import './globals.css';
 const geist = Geist({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'クソ記事チェッカー｜AI・情報商材の危険度を判定',
+  title: '情報商材クソ記事チェッカー｜買う前に危険度をAI判定',
   description:
-    'AIや副業系の怪しい記事・情報商材を8軸でスコアリング。誇大表現・N1体験談・有害度などを判定します。',
+    '「これって買う価値ある？」購入する前に要チェック！怪しい情報商材や有料noteの危険度をAIが判定する特化型チェッカーです。無料公開部分をコピペするだけで、詐欺リスクや内容の薄さを見抜き、あなたのお金を守ります。',
   openGraph: {
-    title: 'クソ記事チェッカー',
-    description: 'AIや副業系の怪しい記事の危険度を判定するツール',
+    title: '情報商材クソ記事チェッカー',
+    description: '怪しい情報商材や有料noteの危険度をAIが判定する特化型チェッカー',
     type: 'website',
   },
   twitter: {
