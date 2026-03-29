@@ -132,19 +132,19 @@ export default function Home() {
       {/* SEO Content Section */}
       <div className="max-w-2xl mx-auto px-4 pb-20 space-y-12">
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <span className="w-1.5 h-6 bg-red-600 rounded-full"></span>
             AI判定の仕組み
           </h2>
-          <p className="text-sm text-gray-600 leading-relaxed">
-            本ツールは、Claude 3.1 Proなど最新のAI技術を活用し、ネット上の情報商材や有料記事（note, Brain, Tips等）の「構成パターン」「語彙の選択」「論理の飛躍」を解析します。100点に近いほど、典型的な「中身の薄い商材」や「誇大広告」の傾向が強いことを示しています。
+          <p className="text-sm text-gray-300 leading-relaxed">
+            本ツールは、Claudeなど最新のAI技術を活用し、ネット上の情報商材や有料記事（note, Brain, Tips等）の「構成パターン」「語彙の選択」「論理の飛躍」を解析します。100点に近いほど、典型的な「中身の薄い商材」や「誇大広告」の傾向が強いことを示しています。
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <span className="w-1.5 h-6 bg-red-600 rounded-full"></span>
-            怪しい商材に共通する5つのパターン
+            分析で見ているポイント（例）
           </h2>
           <div className="grid grid-cols-1 gap-4 text-sm">
             <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
@@ -170,16 +170,16 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="bg-gray-100 rounded-xl p-6 text-center">
-          <h2 className="text-lg font-bold text-gray-800 mb-2">
+        <section className="bg-gray-800 rounded-xl p-6 text-center border border-gray-700">
+          <h2 className="text-lg font-bold text-white mb-2">
             大切なお金と時間を守るために
           </h2>
-          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+          <p className="text-sm text-gray-300 leading-relaxed mb-4">
             ネット上の情報は玉石混交です。怪しいと感じたら、まずは「クソ記事チェッカー」でAIの客観的な意見を確認してみてください。
           </p>
           <button 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="text-xs font-bold text-red-600 hover:text-red-700 underline"
+            className="text-xs font-bold text-red-400 hover:text-red-300 underline"
           >
             ↑ 判定フォームへ戻る
           </button>
