@@ -114,6 +114,63 @@ export default function Home() {
         </div>
       )}
 
+      {/* SEO Content Section */}
+      <div className="max-w-2xl mx-auto px-4 pb-20 space-y-12">
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-red-600 rounded-full"></span>
+            AI判定の仕組み
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            本ツールは、Claude 3.1 Proなど最新のAI技術を活用し、ネット上の情報商材や有料記事（note, Brain, Tips等）の「構成パターン」「語彙の選択」「論理の飛躍」を解析します。100点に近いほど、典型的な「中身の薄い商材」や「誇大広告」の傾向が強いことを示しています。
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-red-600 rounded-full"></span>
+            怪しい商材に共通する5つのパターン
+          </h2>
+          <div className="grid grid-cols-1 gap-4 text-sm">
+            <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
+              <h3 className="font-bold text-red-600 mb-1">1. 特定の「煽りワード」の多用</h3>
+              <p className="text-gray-600">「初月から〇〇万」「誰でも簡単に」「最短最速」「神」などの射幸心を煽るワードが連発されている。</p>
+            </div>
+            <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
+              <h3 className="font-bold text-red-600 mb-1">2. 解決策の後出し（囲い込み）</h3>
+              <p className="text-gray-600">「続きはメルマガで」「詳しくは公式LINEで」など、本質的なノウハウが外部誘導の先に隠されている。</p>
+            </div>
+            <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
+              <h3 className="font-bold text-red-600 mb-1">3. 検証不可能な実績（社会的証明の偽装）</h3>
+              <p className="text-gray-600">「累計1,000部突破」「満足度99%」など、第三者が客観的に確認できない数字を並べる手法。</p>
+            </div>
+            <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
+              <h3 className="font-bold text-red-600 mb-1">4. N1の成功体験を一般化</h3>
+              <p className="text-gray-600">特定の一人だけが成功した事例（生存バイアス）を、科学的根拠なしに「再現性がある」と主張している。</p>
+            </div>
+            <div className="p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
+              <h3 className="font-bold text-red-600 mb-1">5. AI（ChatGPT等）による量産記事</h3>
+              <p className="text-gray-600">人間らしい独創的な視点や具体的な一次情報がなく、AIが生成したような無難な正論の寄せ集めになっている。</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-gray-100 rounded-xl p-6 text-center">
+          <h2 className="text-lg font-bold text-gray-800 mb-2">
+            大切なお金と時間を守るために
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            ネット上の情報は玉石混交です。怪しいと感じたら、まずは「クソ記事チェッカー」でAIの客観的な意見を確認してみてください。
+          </p>
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="text-xs font-bold text-red-600 hover:text-red-700 underline"
+          >
+            ↑ 判定フォームへ戻る
+          </button>
+        </section>
+      </div>
+
       {/* Footer */}
       <footer className="border-t border-gray-200 py-6 px-4 text-center text-xs text-gray-400">
         <p>

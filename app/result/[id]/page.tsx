@@ -32,16 +32,16 @@ export async function generateMetadata(
   const ogUrl = `${baseUrl}/api/og/${id}?v=${ogVersion}`;
 
   return {
-    title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
+    title: `【判定結果】${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
     description: result.comment,
     openGraph: {
-      title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
+      title: `【判定結果】${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
       description: result.comment,
       images: [{ url: ogUrl, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
+      title: `【判定結果】${verdict.verdict}（${total}点）｜クソ記事チェッカー`,
       description: result.comment,
       images: [ogUrl],
     },
