@@ -85,10 +85,10 @@ export async function GET(
     : [];
   const fontFamily = fontData ? 'NotoSansJP, sans-serif' : 'sans-serif';
 
-  const CX = 310;
-  const CY = 265;
+  const CX = 350;
+  const CY = 315;
   const MAX_R = 185;
-  const LABEL_R = 228;
+  const LABEL_R = 232;
 
   // Pre-compute label positions for rendering
   const labelPoints = axisLabels.map((label, i) => {
@@ -130,7 +130,7 @@ export async function GET(
             padding: '44px 36px 36px 52px',
           }}
         >
-          <span style={{ fontSize: 13, color: '#555', marginBottom: '18px', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: 13, color: '#aaa', marginBottom: '18px', letterSpacing: '0.08em' }}>
             クソ記事チェッカー
           </span>
 
@@ -140,9 +140,9 @@ export async function GET(
               alignSelf: 'flex-start',
               background: verdict.color,
               color: 'white',
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: 700,
-              padding: '5px 18px',
+              padding: '6px 20px',
               borderRadius: '24px',
               marginBottom: '10px',
             }}
@@ -177,7 +177,7 @@ export async function GET(
           <span
             style={{
               fontSize: 20,
-              color: '#888',
+              color: '#d4d4d4',
               marginTop: '14px',
               lineHeight: '1.65',
               fontStyle: 'italic',
@@ -188,7 +188,7 @@ export async function GET(
 
           <div style={{ flex: 1 }} />
 
-          <span style={{ fontSize: 13, color: '#444' }}>
+          <span style={{ fontSize: 13, color: '#888' }}>
             kuso-checker.vercel.app
           </span>
         </div>
@@ -205,8 +205,8 @@ export async function GET(
             justifyContent: 'center',
           }}
         >
-          <div style={{ position: 'relative', display: 'flex', width: '620px', height: '530px' }}>
-            <svg width="620" height="530" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
+          <div style={{ position: 'relative', display: 'flex', width: '700px', height: '630px' }}>
+            <svg width="700" height="630" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
               {/* Grid pentagons */}
               <polygon points={gridPoly(CX, CY, MAX_R)} fill="none" stroke="#222" strokeWidth="1.5" />
               <polygon points={gridPoly(CX, CY, MAX_R * 0.66)} fill="none" stroke="#1e1e1e" strokeWidth="1" />
@@ -244,16 +244,16 @@ export async function GET(
                   key={i}
                   style={{
                     position: 'absolute',
-                    left: pt.anchor === 'start' ? pt.lx : pt.anchor === 'end' ? pt.lx - 200 : pt.lx - 100,
-                    top: pt.ly - 20,
-                    width: '200px',
+                    left: pt.anchor === 'start' ? pt.lx + 6 : pt.anchor === 'end' ? pt.lx - 126 : pt.lx - 60,
+                    top: pt.ly - 26,
+                    width: '120px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: pt.anchor === 'start' ? 'flex-start' : pt.anchor === 'end' ? 'flex-end' : 'center',
                   }}
                 >
-                  <div style={{ display: 'flex', color: '#888', fontSize: 14 }}>{pt.label}</div>
-                  <div style={{ display: 'flex', color: verdict.color, fontSize: 22, fontWeight: 700, marginTop: 4 }}>{pt.score}</div>
+                  <div style={{ display: 'flex', color: '#ccc', fontSize: 13, marginBottom: 2 }}>{pt.label}</div>
+                  <div style={{ display: 'flex', color: verdict.color, fontSize: 24, fontWeight: 700 }}>{pt.score}</div>
                 </div>
               ))}
             </div>
